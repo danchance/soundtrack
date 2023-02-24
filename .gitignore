@@ -1,0 +1,11 @@
+# dependencies
+/node_modules
+
+# production
+/dist
+
+# dotenv environment variables file
+.env
+
+# static files
+/public
