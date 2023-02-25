@@ -1,24 +1,33 @@
 import { devdb } from '../config/db.config.js';
 import { Sequelize } from 'sequelize';
+import trackModel from './track.model.js';
 
 /**
- * Setup database connection
+ * Setup database connection.
  */
-const sequelize = new Sequelize(devdb.DB, devdb.USER, devdb.PASSWORD, {
-  host: devdb.HOST,
-  port: devdb.PORT,
-  dialect: 'mysql',
-  pool: {
-    max: devdb.pool.max,
-    min: devdb.pool.min,
-    acquire: devdb.pool.acquire,
-    idle: devdb.pool.idle
+const sequelize: Sequelize = new Sequelize(
+  devdb.DB,
+  devdb.USER,
+  devdb.PASSWORD,
+  {
+    host: devdb.HOST,
+    port: devdb.PORT,
+    dialect: 'mysql',
+    pool: {
+      max: devdb.pool.max,
+      min: devdb.pool.min,
+      acquire: devdb.pool.acquire,
+      idle: devdb.pool.idle
+    }
   }
-});
+);
 
+/**
+ * Define database models.
+ */
 const db = {
-  Sequelize: Sequelize,
-  sequelize: sequelize
+  sequelize: sequelize,
+  tracks: trackModel(sequelize)
 };
 
 export default db;
