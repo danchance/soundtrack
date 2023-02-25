@@ -1,6 +1,7 @@
 import { devdb } from '../config/db.config.js';
 import { Sequelize } from 'sequelize';
 import trackModel from './track.model.js';
+import albumModel from './album.model.js';
 
 /**
  * Setup database connection.
@@ -27,7 +28,8 @@ const sequelize: Sequelize = new Sequelize(
  */
 const db = {
   sequelize: sequelize,
-  tracks: trackModel(sequelize)
+  tracks: trackModel(sequelize),
+  albums: albumModel(sequelize)
 };
 
 export default db;
