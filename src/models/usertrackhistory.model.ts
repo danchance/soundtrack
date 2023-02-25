@@ -42,14 +42,16 @@ export default (
       },
       userId: {
         type: DataTypes.INTEGER,
-        allowNull: false
-        // references: {
-        //   model: 'users',
-        //   key: 'id'
-        // }
+        unique: 'compositeKey',
+        allowNull: false,
+        references: {
+          model: 'users',
+          key: 'id'
+        }
       },
       trackId: {
         type: DataTypes.STRING,
+        unique: 'compositeKey',
         allowNull: false,
         references: {
           model: 'tracks',
@@ -58,6 +60,7 @@ export default (
       },
       playedAt: {
         type: DataTypes.STRING,
+        unique: 'compositeKey',
         allowNull: false
       }
     },

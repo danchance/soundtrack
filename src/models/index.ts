@@ -5,6 +5,7 @@ import trackModel from './track.model.js';
 import artistModel from './artist.model.js';
 import genreModel from './genre.model.js';
 import usertrackhistoryModel from './usertrackhistory.model.js';
+import userModel from './user.model.js';
 
 /**
  * Setup database connection.
@@ -30,6 +31,7 @@ const sequelize: Sequelize = new Sequelize(
  * Define database models.
  */
 const models = {
+  user: userModel(sequelize),
   genre: genreModel(sequelize),
   artist: artistModel(sequelize),
   album: albumModel(sequelize),
@@ -71,8 +73,8 @@ models.genre.belongsToMany(models.artist, { through: 'ArtistGenres' });
  *  - UserId foreign key: many-to-one.
  *  - TrackId foreign key: many-to-one.
  */
-// models.user.hasMany(models.userTrackHistory)
-// models.userTrackHistory.belongsTo(models.user)
+models.user.hasMany(models.userTrackHistory);
+models.userTrackHistory.belongsTo(models.user);
 
 models.track.hasMany(models.userTrackHistory);
 models.userTrackHistory.belongsTo(models.track);
