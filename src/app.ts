@@ -1,9 +1,9 @@
 import express, { Express, NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import { join, dirname } from 'path';
-import routes from './routes/_routes.js';
+import routes from './routes/_index.js';
 import { fileURLToPath } from 'url';
-import { sequelize } from './models/index.js';
+import { sequelize } from './models/_index.js';
 
 /**
  * Do not load environment variables from .env file in production.
