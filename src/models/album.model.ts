@@ -13,7 +13,7 @@ enum AlbumType {
  * Define interface for Album attributes.
  */
 interface AlbumAttributes {
-  albumId: string;
+  id: string;
   name: string;
   type: AlbumType;
   trackNum: number;
@@ -37,7 +37,7 @@ export default (
   >(
     'album',
     {
-      albumId: {
+      id: {
         primaryKey: true,
         type: DataTypes.STRING,
         allowNull: false

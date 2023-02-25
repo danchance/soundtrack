@@ -1,38 +1,31 @@
-import {
-  Sequelize,
-  DataTypes,
-  ModelDefined,
-  Model,
-  InferAttributes,
-  InferCreationAttributes
-} from 'sequelize';
+import { Sequelize, DataTypes, ModelDefined, Model } from 'sequelize';
 
 /**
  * Define interface for Track attributes.
  */
-interface TrackModel
-  extends Model<
-    InferAttributes<TrackModel>,
-    InferCreationAttributes<TrackModel>
-  > {
-  trackId: string;
+interface TrackAttributes {
+  id: string;
   name: string;
-  length: number;
+  duration: number;
 }
+
+/**
+ * All attributes are requrired at model creation
+ */
+type TrackCreationAttributes = TrackAttributes;
 
 /**
  * Track model definition.
  */
 export default (
   sequelize: Sequelize
-): ModelDefined<
-  InferAttributes<TrackModel>,
-  InferCreationAttributes<TrackModel>
-> => {
-  const Track = sequelize.define<TrackModel>(
+): ModelDefined<TrackAttributes, TrackCreationAttributes> => {
+  const Track = sequelize.define<
+    Model<TrackAttributes, TrackCreationAttributes>
+  >(
     'track',
     {
-      trackId: {
+      id: {
         primaryKey: true,
         type: DataTypes.STRING,
         allowNull: false
@@ -41,7 +34,7 @@ export default (
         type: DataTypes.STRING,
         allowNull: false
       },
-      length: {
+      duration: {
         type: DataTypes.INTEGER,
         allowNull: false,
         validate: {
