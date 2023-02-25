@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { join, dirname } from 'path';
 import routes from './routes/_routes.js';
 import { fileURLToPath } from 'url';
+import db from './models/index.js';
 
 /**
  * Do not load environment variables from .env file in production.
@@ -10,6 +11,11 @@ import { fileURLToPath } from 'url';
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
 }
+
+/**
+ * Syncronize models with the database
+ */
+db.sequelize.sync();
 
 const app: Express = express();
 
