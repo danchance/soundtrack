@@ -44,7 +44,10 @@ const models = {
  *  - AlbumId foreign key: many-to-one.
  *  - TrackArtists junction table: many-to-many.
  */
-models.album.hasMany(models.track);
+models.album.hasMany(models.track, {
+  onDelete: 'RESTRICT',
+  onUpdate: 'CASCADE'
+});
 models.track.belongsTo(models.album);
 
 models.track.belongsToMany(models.artist, { through: 'TrackArtists' });
@@ -73,10 +76,16 @@ models.genre.belongsToMany(models.artist, { through: 'ArtistGenres' });
  *  - UserId foreign key: many-to-one.
  *  - TrackId foreign key: many-to-one.
  */
-models.user.hasMany(models.userTrackHistory);
+models.user.hasMany(models.userTrackHistory, {
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE'
+});
 models.userTrackHistory.belongsTo(models.user);
 
-models.track.hasMany(models.userTrackHistory);
+models.track.hasMany(models.userTrackHistory, {
+  onDelete: 'RESTRICT',
+  onUpdate: 'CASCADE'
+});
 models.userTrackHistory.belongsTo(models.track);
 
 export { sequelize, models };

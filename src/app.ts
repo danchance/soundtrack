@@ -15,7 +15,7 @@ if (process.env.NODE_ENV !== 'production') {
 /**
  * Syncronize models with the database
  */
-sequelize.sync({ force: true });
+sequelize.sync();
 
 const app: Express = express();
 
