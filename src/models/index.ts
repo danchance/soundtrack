@@ -4,6 +4,7 @@ import albumModel from './album.model.js';
 import trackModel from './track.model.js';
 import artistModel from './artist.model.js';
 import genreModel from './genre.model.js';
+import usertrackhistoryModel from './usertrackhistory.model.js';
 
 /**
  * Setup database connection.
@@ -32,7 +33,8 @@ const models = {
   genre: genreModel(sequelize),
   artist: artistModel(sequelize),
   album: albumModel(sequelize),
-  track: trackModel(sequelize)
+  track: trackModel(sequelize),
+  userTrackHistory: usertrackhistoryModel(sequelize)
 };
 
 /**
@@ -41,7 +43,7 @@ const models = {
  *  - TrackArtists junction table: many-to-many.
  */
 models.album.hasMany(models.track);
-// models.track.belongsTo(models.album);
+models.track.belongsTo(models.album);
 
 models.track.belongsToMany(models.artist, { through: 'TrackArtists' });
 models.artist.belongsToMany(models.track, { through: 'TrackArtists' });
@@ -63,5 +65,16 @@ models.genre.belongsToMany(models.album, { through: 'AlbumGenres' });
  */
 models.artist.belongsToMany(models.genre, { through: 'ArtistGenres' });
 models.genre.belongsToMany(models.artist, { through: 'ArtistGenres' });
+
+/**
+ * Setup UserTrackHistory model associations.
+ *  - UserId foreign key: many-to-one.
+ *  - TrackId foreign key: many-to-one.
+ */
+// models.user.hasMany(models.userTrackHistory)
+// models.userTrackHistory.belongsTo(models.user)
+
+models.track.hasMany(models.userTrackHistory);
+models.userTrackHistory.belongsTo(models.track);
 
 export { sequelize, models };

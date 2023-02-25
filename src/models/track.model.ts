@@ -50,6 +50,7 @@ export default (
       },
       albumId: {
         type: DataTypes.STRING,
+        allowNull: false,
         references: {
           model: 'albums',
           key: 'id'
