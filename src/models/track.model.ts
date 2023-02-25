@@ -1,4 +1,10 @@
-import { Sequelize, DataTypes, ModelDefined, Model } from 'sequelize';
+import {
+  Sequelize,
+  DataTypes,
+  ModelDefined,
+  Model,
+  ForeignKey
+} from 'sequelize';
 
 /**
  * Define interface for Track attributes.
@@ -7,6 +13,7 @@ interface TrackAttributes {
   id: string;
   name: string;
   duration: number;
+  albumId: ForeignKey<string>;
 }
 
 /**
@@ -23,7 +30,7 @@ export default (
   const Track = sequelize.define<
     Model<TrackAttributes, TrackCreationAttributes>
   >(
-    'track',
+    'Track',
     {
       id: {
         primaryKey: true,
@@ -39,6 +46,13 @@ export default (
         allowNull: false,
         validate: {
           min: 0
+        }
+      },
+      albumId: {
+        type: DataTypes.STRING,
+        references: {
+          model: 'albums',
+          key: 'id'
         }
       }
     },

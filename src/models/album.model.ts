@@ -35,7 +35,7 @@ export default (
   const Album = sequelize.define<
     Model<AlbumAttributes, AlbumCreationAttributes>
   >(
-    'album',
+    'Album',
     {
       id: {
         primaryKey: true,
