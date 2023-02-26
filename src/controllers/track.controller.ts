@@ -10,6 +10,6 @@ export const getTrack = (req: Request, res: Response, next: NextFunction) => {
   try {
     return res.json({});
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
