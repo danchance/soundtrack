@@ -40,11 +40,15 @@ const checkUser = (req: Request, res: Response, next: NextFunction) => {
   if (typeof bearerHeader === 'undefined') return next();
   const bearer = bearerHeader.split(' ');
   let bearerToken = bearer[1];
-  // Verify the JWT is valid
+  // Verify the JWT signature is valid
   jwt.verify(
     bearerToken,
     getKey,
-    { algorithms: ['RS256'] },
+    {
+      algorithms: ['RS256'],
+      audience: config.auth0.audience,
+      issuer: config.auth0.domain
+    },
     (error, decoded) => {
       if (error) return next();
       // Signature is valid, add user object
