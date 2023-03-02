@@ -8,6 +8,7 @@ import { NextFunction, Request, Response } from 'express';
  */
 export const getUser = (req: Request, res: Response, next: NextFunction) => {
   try {
+    console.log(req.user);
     return res.json({ user: { email: 'user@email.com' } });
   } catch (error) {
     return next(error);

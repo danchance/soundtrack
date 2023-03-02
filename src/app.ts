@@ -5,6 +5,7 @@ import { join, dirname } from 'path';
 import routes from './routes/_index.js';
 import { fileURLToPath } from 'url';
 import { sequelize } from './models/_index.js';
+import checkUser from './middleware/user.js';
 
 /**
  * Do not load environment variables from .env file in production.
@@ -30,6 +31,12 @@ app.use(express.static(join(root, 'public')));
  * Mount body-parsing middleware.
  */
 app.use(express.json());
+
+/**
+ * Mount user middleware, to attach a user object to the request object
+ * if a verified JWT was included in the request.
+ */
+app.use(checkUser);
 
 /**
  * CORS
