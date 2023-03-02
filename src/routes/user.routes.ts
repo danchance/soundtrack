@@ -1,9 +1,13 @@
 import { Router } from 'express';
 import * as userController from '../controllers/user.controller.js';
+import checkJwt from '../middleware/auth.js';
 
 const router: Router = Router();
 
-router.get('/:id', userController.getUser);
+/**
+ * Test protecting this route
+ */
+router.get('/:id', checkJwt, userController.getUser);
 
 router.get('/:id/tracks/history', userController.getUserHistory);
 

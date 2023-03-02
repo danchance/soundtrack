@@ -7,8 +7,8 @@ import userRouter from './user.routes.js';
 const router: Router = Router();
 
 router.use('/tracks', trackRouter);
-router.use('/album', albumRouter);
-router.use('/artist', artistRouter);
-router.use('/user', userRouter);
+router.use('/albums', albumRouter);
+router.use('/artists', artistRouter);
+router.use('/users', userRouter);
 
 export default router;

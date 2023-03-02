@@ -1,3 +1,4 @@
+import cors from 'cors';
 import express, { Express, NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import { join, dirname } from 'path';
@@ -29,6 +30,16 @@ app.use(express.static(join(root, 'public')));
  * Mount body-parsing middleware.
  */
 app.use(express.json());
+
+/**
+ * CORS
+ */
+app.use(
+  cors({
+    origin: 'http://localhost:3000',
+    credentials: true
+  })
+);
 
 /**
  * Mount route middleware.
