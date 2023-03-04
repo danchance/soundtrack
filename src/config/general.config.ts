@@ -13,6 +13,10 @@ const development = {
     audience: 'https://soundtrack/api',
     domain: 'https://soundtrack.uk.auth0.com/',
     jwksEndpoint: 'https://soundtrack.uk.auth0.com/.well-known/jwks.json'
+  },
+  spotify: {
+    baseUri: 'https://api.spotify.com/v1',
+    clientId: '251e80c7b65e4e1797a529c3e8572dbd'
   }
 };
 
