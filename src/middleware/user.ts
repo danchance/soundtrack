@@ -33,6 +33,10 @@ const getKey = (header: DecodedJWTHeader, callback: Function) => {
 /**
  * Middleware function used to attach a user object to the request object.
  * User object is only added if a JWT exists and has a valid signature.
+ * @param req Express Request object
+ * @param res Express Response object
+ * @param next Express next() function
+ * @returns Executes the next middleware in the stack
  */
 const checkUser = (req: Request, res: Response, next: NextFunction) => {
   const bearerHeader = req.headers['authorization'];
