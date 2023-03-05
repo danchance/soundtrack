@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { requestAccessToken } from '../services/spotify/auth.js';
+import spotifyAuthService from '../services/spotify/auth.js';
 
 /**
  * Controller for the tracks/:id endpoint.
@@ -13,7 +13,10 @@ export const authorize = async (
   next: NextFunction
 ) => {
   try {
-    await requestAccessToken(req.body.code, req.body.redirectUri);
+    await spotifyAuthService.requestAccessToken(
+      req.body.code,
+      req.body.redirectUri
+    );
   } catch (error) {
     console.log('--------------ERROR--------------');
     console.error(error);

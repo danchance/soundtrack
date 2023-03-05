@@ -1,7 +1,7 @@
+import './utils/env.js';
+import generalConfig from './config/general.config.js';
 import { createServer } from 'http';
 import app from './app.js';
-import generalConfig from './config/general.config.js';
-
 /**
  * Create and run Http Server.
  */
