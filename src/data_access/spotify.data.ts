@@ -1,20 +1,17 @@
 import config from '../config/general.config.js';
 import { Response } from 'node-fetch';
-import { post } from '../utils/fetch_wrapper.js';
+import { get, post } from '../utils/fetch_wrapper.js';
+import { spotifyGet, spotifyPost } from '../utils/spotify_fetch.js';
 
-type AccessTokenResponse = {
+type AuthenticationResponse = {
   access_token: string;
   expires_in: number;
   refresh_token?: string;
 };
 
-type ErrorResponse = {
-  error: string;
-  error_description: string;
-};
-
 const spotifyApi = (() => {
-  // Build request header - Authorization header must be base64 encoded.
+  // Build request header for requesting access token.
+  // Authorization header must be base64 encoded.
   const headers = {
     'Content-Type': 'application/x-www-form-urlencoded',
     Authorization: `Basic ${Buffer.from(
@@ -32,31 +29,14 @@ const spotifyApi = (() => {
   const requestAccessToken = async (
     code: string,
     redirectUri: string
-  ): Promise<AccessTokenResponse> => {
-    try {
-      // Build POST body
-      const body = new URLSearchParams({
-        redirect_uri: redirectUri,
-        code: code,
-        grant_type: 'authorization_code'
-      });
-      // Request access token
-      const data = await post<AccessTokenResponse>(
-        `${config.spotify.accountsUrl}/token`,
-        body,
-        { headers }
-      );
-      return data;
-    } catch (error) {
-      if (error instanceof Response) {
-        const err = (await error.json()) as ErrorResponse;
-        throw new Error(err.error_description);
-      }
-      if (error instanceof Error) {
-        throw new Error(`Something went wrong: ${error.message}`);
-      }
-      throw new Error(`Something went wrong: ${error}`);
-    }
+  ): Promise<AuthenticationResponse> => {
+    // Build POST body.
+    const body = new URLSearchParams({
+      redirect_uri: redirectUri,
+      code: code,
+      grant_type: 'authorization_code'
+    });
+    return await spotifyPost<AuthenticationResponse>(body, { headers });
   };
   /**
    * Request an access token using the refresh token previously provided by the Spotify
@@ -65,33 +45,55 @@ const spotifyApi = (() => {
    */
   const requestRefreshedAccessToken = async (
     refreshToken: string
-  ): Promise<AccessTokenResponse> => {
-    try {
-      // Build POST body
-      const body = new URLSearchParams({
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken
-      });
-      // Request access token
-      const data = await post<AccessTokenResponse>(
-        `${config.spotify.accountsUrl}/token`,
-        body,
-        { headers }
-      );
-      return data;
-    } catch (error) {
-      if (error instanceof Response) {
-        const err = (await error.json()) as ErrorResponse;
-        throw new Error(err.error_description);
-      }
-      if (error instanceof Error) {
-        throw new Error(`Something went wrong: ${error.message}`);
-      }
-      throw new Error(`Something went wrong: ${error}`);
-    }
+  ): Promise<AuthenticationResponse> => {
+    // Build POST body.
+    const body = new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken
+    });
+    return await spotifyPost<AuthenticationResponse>(body, { headers });
   };
 
-  return { requestAccessToken, requestRefreshedAccessToken };
+  /**
+   * Request a single track by id.
+   * @param accessToken Access token provided by Spotify.
+   * @param trackId Id of the track.
+   * @returns Spotify track object.
+   */
+  const getTrack = async (accessToken: string, trackId: string) => {
+    const endpoint = `tracks/${trackId}`;
+    return await spotifyGet(endpoint, accessToken);
+  };
+
+  /**
+   * Request a single album by id.
+   * @param accessToken Access token provided by Spotify.
+   * @param albumId Id of the album.
+   * @returns Spotify album object.
+   */
+  const getAlbum = async (accessToken: string, albumId: string) => {
+    const endpoint = `albums/${albumId}`;
+    return await spotifyGet(endpoint, accessToken);
+  };
+
+  /**
+   * Request a single artist by id.
+   * @param accessToken Access token provided by Spotify.
+   * @param artistId Id of the artist.
+   * @returns Spotify artist object.
+   */
+  const getArtist = async (accessToken: string, artistId: string) => {
+    const endpoint = `artists/${artistId}`;
+    return await spotifyGet(endpoint, accessToken);
+  };
+
+  return {
+    requestAccessToken,
+    requestRefreshedAccessToken,
+    getTrack,
+    getAlbum,
+    getArtist
+  };
 })();
 
 export default spotifyApi;

@@ -7,11 +7,18 @@ import fetch, { BodyInit, RequestInfo, RequestInit } from 'node-fetch';
  * @returns JSON response of type T.
  */
 const fetcher = async <T>(url: RequestInfo, options?: RequestInit) => {
-  const response = await fetch(url, options);
-  if (!response.ok) {
-    throw response;
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      return Promise.reject(response);
+    }
+    return response.json().catch(() => ({})) as Promise<T>;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Something went wrong: ${error.message}`);
+    }
+    throw new Error(`Something went wrong: ${error}`);
   }
-  return response.json().catch(() => ({})) as Promise<T>;
 };
 
 /**
@@ -20,7 +27,7 @@ const fetcher = async <T>(url: RequestInfo, options?: RequestInit) => {
  * @param config fetch settings.
  * @returns JSON response of type T.
  */
-export const get = async <T>(url: string, config: RequestInit) => {
+export const get = async <T>(url: string, config?: RequestInit) => {
   const init = { method: 'GET', ...config };
   return await fetcher<T>(url, init);
 };
