@@ -1,11 +1,11 @@
-import config from '../../config/general.config.js';
+import config from '../config/general.config.js';
 import { Response } from 'node-fetch';
-import { post } from '../../utils/fetch_wrapper.js';
+import { post } from '../utils/fetch_wrapper.js';
 
 type AccessTokenResponse = {
   access_token: string;
   expires_in: number;
-  refresh_token: string;
+  refresh_token?: string;
 };
 
 type ErrorResponse = {
@@ -13,11 +13,7 @@ type ErrorResponse = {
   error_description: string;
 };
 
-/**
- * spotifyAuthService is responsible for handling all logic relating to users authorizing
- * access to their Spotify accounts and handling access/refresh tokens.
- */
-const spotifyAuthService = (() => {
+const spotifyApi = (() => {
   // Build request header - Authorization header must be base64 encoded.
   const headers = {
     'Content-Type': 'application/x-www-form-urlencoded',
@@ -31,11 +27,14 @@ const spotifyAuthService = (() => {
    * access to their Spotify account.
    * @param code Spotify authorization code returned after intial authorization request.
    * @param redirectUri redirect_uri supplied when requesting the authorization code.
+   * @returns
    */
-  const requestAccessToken = async (code: string, redirectUri: string) => {
+  const requestAccessToken = async (
+    code: string,
+    redirectUri: string
+  ): Promise<AccessTokenResponse> => {
     try {
       // Build POST body
-      console.log('HEADERS', headers);
       const body = new URLSearchParams({
         redirect_uri: redirectUri,
         code: code,
@@ -47,9 +46,7 @@ const spotifyAuthService = (() => {
         body,
         { headers }
       );
-      // Update the user record with the new access/refresh tokens.
-      // TODO: ^
-      console.log(data);
+      return data;
     } catch (error) {
       if (error instanceof Response) {
         const err = (await error.json()) as ErrorResponse;
@@ -61,13 +58,14 @@ const spotifyAuthService = (() => {
       throw new Error(`Something went wrong: ${error}`);
     }
   };
-
   /**
    * Request an access token using the refresh token previously provided by the Spotify
    * API.
    * @param refreshToken Refresh token provided by Spotify.
    */
-  const requestRefreshedAccessToken = async (refreshToken: string) => {
+  const requestRefreshedAccessToken = async (
+    refreshToken: string
+  ): Promise<AccessTokenResponse> => {
     try {
       // Build POST body
       const body = new URLSearchParams({
@@ -80,9 +78,7 @@ const spotifyAuthService = (() => {
         body,
         { headers }
       );
-      // Update the user record with the new access/refresh tokens.
-      // TODO: ^
-      console.log(data);
+      return data;
     } catch (error) {
       if (error instanceof Response) {
         const err = (await error.json()) as ErrorResponse;
@@ -98,4 +94,4 @@ const spotifyAuthService = (() => {
   return { requestAccessToken, requestRefreshedAccessToken };
 })();
 
-export default spotifyAuthService;
+export default spotifyApi;

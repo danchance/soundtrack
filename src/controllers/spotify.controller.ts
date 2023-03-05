@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import spotifyAuthService from '../services/spotify/auth.js';
+import spotifyApi from '../data_access/spotify.data.js';
+// import spotifyAuthService from '../services/spotify/auth.js';
 
 /**
  * Controller for the tracks/:id endpoint.
@@ -13,14 +14,17 @@ export const authorize = async (
   next: NextFunction
 ) => {
   try {
-    await spotifyAuthService.requestAccessToken(
+    const data = await spotifyApi.requestAccessToken(
       req.body.code,
       req.body.redirectUri
     );
+    // await spotifyApi.requestRefreshedAccessToken(
+    //   'AQADM5i1bWmto9JRvR1zs9Efh-qiXxxR_815pA4m_Cms9OoXbjCeGJ9v991jXIaSG5vBs3s9OhUH8ZVIbtAzVwqnaZFfo5mDgDQlmxk9AALlLEcd5pSLHa75u1OEhqacMQ0'
+    // );
+    return res.json({ ...data });
   } catch (error) {
     console.log('--------------ERROR--------------');
     console.error(error);
+    return res.json({ error });
   }
-
-  return res.json('');
 };

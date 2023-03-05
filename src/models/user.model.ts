@@ -3,42 +3,32 @@ import { Sequelize, DataTypes, ModelDefined, Model } from 'sequelize';
 /**
  * Define interface for User attributes.
  */
-interface UserAttributes {
+export interface IUser {
   id: number;
-  email: string;
   username: string;
   spotifyAccessToken: string;
   spotifyRefreshToken: string;
   spotifyTokenExpires: Date;
-  profileImage: string;
 }
 
 /**
  * All attributes are requrired at model creation
  */
-type UserCreationAttributes = UserAttributes;
+type UserCreationAttributes = IUser;
 
 /**
  * User model definition.
  */
 export default (
   sequelize: Sequelize
-): ModelDefined<UserAttributes, UserCreationAttributes> => {
-  const User = sequelize.define<Model<UserAttributes, UserCreationAttributes>>(
+): ModelDefined<IUser, UserCreationAttributes> => {
+  const User = sequelize.define<Model<IUser, UserCreationAttributes>>(
     'User',
     {
       id: {
         primaryKey: true,
         autoIncrement: true,
         type: DataTypes.INTEGER
-      },
-      email: {
-        type: DataTypes.STRING,
-        unique: true,
-        allowNull: false,
-        validate: {
-          isEmail: true
-        }
       },
       username: {
         type: DataTypes.STRING,
@@ -47,8 +37,7 @@ export default (
       },
       spotifyAccessToken: DataTypes.STRING,
       spotifyRefreshToken: DataTypes.STRING,
-      spotifyTokenExpires: DataTypes.DATE,
-      profileImage: DataTypes.STRING
+      spotifyTokenExpires: DataTypes.DATE
     },
     {
       underscored: true
