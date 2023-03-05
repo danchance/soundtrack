@@ -1,6 +1,6 @@
 import config from '../../config/general.config.js';
 import { Response } from 'node-fetch';
-import { fetchWrapper } from '../../utils/fetch_wrapper.js';
+import { post } from '../../utils/fetch_wrapper.js';
 
 type AccessTokenResponse = {
   access_token: string;
@@ -35,7 +35,7 @@ export const requestAccessToken = async (code: string, redirectUri: string) => {
       grant_type: 'authorization_code'
     });
     // Request access token
-    const data = await fetchWrapper.post<AccessTokenResponse>(
+    const data = await post<AccessTokenResponse>(
       `${config.spotify.accountsUrl}/token`,
       body,
       { headers }
@@ -75,7 +75,7 @@ export const requestRefreshedAccessToken = async (refreshToken: string) => {
       refresh_token: refreshToken
     });
     // Request access token
-    const data = await fetchWrapper.post<AccessTokenResponse>(
+    const data = await post<AccessTokenResponse>(
       `${config.spotify.accountsUrl}/token`,
       body,
       { headers }
