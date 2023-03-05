@@ -1,7 +1,11 @@
+type Keyable = {
+  [key: string]: any;
+};
+
 type Config = {
-  development: any;
-  test: any;
-  production: any;
+  development: Keyable;
+  test: Keyable;
+  production: Keyable;
 };
 
 /**
@@ -13,6 +17,11 @@ const development = {
     audience: 'https://soundtrack/api',
     domain: 'https://soundtrack.uk.auth0.com/',
     jwksEndpoint: 'https://soundtrack.uk.auth0.com/.well-known/jwks.json'
+  },
+  spotify: {
+    apiUrl: 'https://api.spotify.com/v1',
+    accountsUrl: 'https://accounts.spotify.com/api',
+    clientId: '251e80c7b65e4e1797a529c3e8572dbd'
   }
 };
 

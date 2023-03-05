@@ -1,18 +1,10 @@
 import cors from 'cors';
 import express, { Express, NextFunction, Request, Response } from 'express';
-import dotenv from 'dotenv';
 import { join, dirname } from 'path';
 import routes from './routes/_index.js';
 import { fileURLToPath } from 'url';
 import { sequelize } from './models/_index.js';
 import checkUser from './middleware/user.js';
-
-/**
- * Do not load environment variables from .env file in production.
- */
-if (process.env.NODE_ENV !== 'production') {
-  dotenv.config();
-}
 
 /**
  * Syncronize models with the database
