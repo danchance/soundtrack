@@ -1,12 +1,16 @@
 import config from '../../config/general.config.js';
-import fetch from 'node-fetch';
+import { Response } from 'node-fetch';
+import { fetchWrapper } from '../../utils/fetch_wrapper.js';
 
-type ResObj = {
-  error?: string;
-  error_description?: string;
-  access_token?: string;
-  expires_in?: number;
-  refresh_token?: string;
+type AccessTokenResponse = {
+  access_token: string;
+  expires_in: number;
+  refresh_token: string;
+};
+
+type ErrorResponse = {
+  error: string;
+  error_description: string;
 };
 
 /**
@@ -14,41 +18,79 @@ type ResObj = {
  * access to their Spotify account.
  * @param code Spotify authorization code returned after intial authorization request.
  * @param redirectUri redirect_uri supplied when requesting the authorization code.
- * @returns
  */
 export const requestAccessToken = async (code: string, redirectUri: string) => {
   try {
-    // Build base64 encoded authorization header.
-    const authHeader = Buffer.from(
-      `${config.spotify.clientId}:${process.env.SPOTIFY_CLIENT_SECRET}`
-    ).toString('base64');
-    // Request access token
-    const res = await fetch(`https://accounts.spotify.com/api/token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: `Basic ${authHeader}`
-      },
-      body: new URLSearchParams({
-        redirect_uri: redirectUri,
-        code: code,
-        grant_type: 'authorization_code'
-      })
+    // Build headers - base64 encode the authorization header.
+    const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: `Basic ${Buffer.from(
+        `${config.spotify.clientId}:${process.env.SPOTIFY_CLIENT_SECRET}`
+      ).toString('base64')}`
+    };
+    // Build POST body
+    const body = new URLSearchParams({
+      redirect_uri: redirectUri,
+      code: code,
+      grant_type: 'authorization_code'
     });
-    const resData: ResObj = (await res.json()) as ResObj;
-    if (!res.ok) {
-      throw new Error(resData.error_description);
-    }
+    // Request access token
+    const data = await fetchWrapper.post<AccessTokenResponse>(
+      `${config.spotify.accountsUrl}/token`,
+      body,
+      { headers }
+    );
     // Update the user record with the new access/refresh tokens.
     // TODO: ^
-    console.log(resData);
+    console.log(data);
   } catch (error) {
-    return Promise.reject(error);
+    if (error instanceof Response) {
+      const err = (await error.json()) as ErrorResponse;
+      throw new Error(err.error_description);
+    }
+    if (error instanceof Error) {
+      throw new Error(`Something went wrong: ${error.message}`);
+    }
+    throw new Error(`Something went wrong: ${error}`);
   }
 };
 
 /**
  * Request an access token using the refresh token previously provided by the Spotify
  * API.
+ * @param refreshToken Refresh token provided by Spotify.
  */
-export const requestRefreshedAccessToken = () => {};
+export const requestRefreshedAccessToken = async (refreshToken: string) => {
+  try {
+    // Build headers - base64 encode the authorization header.
+    const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: `Basic ${Buffer.from(
+        `${config.spotify.clientId}:${process.env.SPOTIFY_CLIENT_SECRET}`
+      ).toString('base64')}`
+    };
+    // Build POST body
+    const body = new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken
+    });
+    // Request access token
+    const data = await fetchWrapper.post<AccessTokenResponse>(
+      `${config.spotify.accountsUrl}/token`,
+      body,
+      { headers }
+    );
+    // Update the user record with the new access/refresh tokens.
+    // TODO: ^
+    console.log(data);
+  } catch (error) {
+    if (error instanceof Response) {
+      const err = (await error.json()) as ErrorResponse;
+      throw new Error(err.error_description);
+    }
+    if (error instanceof Error) {
+      throw new Error(`Something went wrong: ${error.message}`);
+    }
+    throw new Error(`Something went wrong: ${error}`);
+  }
+};

@@ -7,7 +7,17 @@ import { requestAccessToken } from '../services/spotify/auth.js';
  * @param res Express Response object
  * @param next Express next() middleware function
  */
-export const authorize = (req: Request, res: Response, next: NextFunction) => {
-  requestAccessToken(req.body.code, req.body.redirectUri);
+export const authorize = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    await requestAccessToken(req.body.code, req.body.redirectUri);
+  } catch (error) {
+    console.log('--------------ERROR--------------');
+    console.error(error);
+  }
+
   return res.json('');
 };
