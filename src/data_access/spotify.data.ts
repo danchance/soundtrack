@@ -1,6 +1,4 @@
 import config from '../config/general.config.js';
-import { Response } from 'node-fetch';
-import { get, post } from '../utils/fetch_wrapper.js';
 import { spotifyGet, spotifyPost } from '../utils/spotify_fetch.js';
 
 type AuthenticationResponse = {
@@ -30,14 +28,18 @@ const spotifyApi = (() => {
     code: string,
     redirectUri: string
   ): Promise<AuthenticationResponse> => {
+    const endpoint = 'token';
     // Build POST body.
     const body = new URLSearchParams({
       redirect_uri: redirectUri,
       code: code,
       grant_type: 'authorization_code'
     });
-    return await spotifyPost<AuthenticationResponse>(body, { headers });
+    return await spotifyPost<AuthenticationResponse>(endpoint, body, {
+      headers
+    });
   };
+
   /**
    * Request an access token using the refresh token previously provided by the Spotify
    * API.
@@ -46,12 +48,15 @@ const spotifyApi = (() => {
   const requestRefreshedAccessToken = async (
     refreshToken: string
   ): Promise<AuthenticationResponse> => {
+    const endpoint = 'token';
     // Build POST body.
     const body = new URLSearchParams({
       grant_type: 'refresh_token',
       refresh_token: refreshToken
     });
-    return await spotifyPost<AuthenticationResponse>(body, { headers });
+    return await spotifyPost<AuthenticationResponse>(endpoint, body, {
+      headers
+    });
   };
 
   /**
@@ -77,6 +82,17 @@ const spotifyApi = (() => {
   };
 
   /**
+   * Request all tracks on an album.
+   * @param accessToken Access token provided by Spotify.
+   * @param albumId Id of the album.
+   * @returns Spotify album object.
+   */
+  const getAlbumTracks = async (accessToken: string, albumId: string) => {
+    const endpoint = `albums/${albumId}/tracks`;
+    return await spotifyGet(endpoint, accessToken);
+  };
+
+  /**
    * Request a single artist by id.
    * @param accessToken Access token provided by Spotify.
    * @param artistId Id of the artist.
@@ -87,12 +103,64 @@ const spotifyApi = (() => {
     return await spotifyGet(endpoint, accessToken);
   };
 
+  /**
+   * Request all albums for an artist.
+   * @param accessToken Access token provided by Spotify.
+   * @param artistId Id of the artist.
+   * @returns Spotify album objects.
+   */
+  const getArtistAlbums = async (accessToken: string, artistId: string) => {
+    const endpoint = `artists/${artistId}/albums`;
+    return await spotifyGet(endpoint, accessToken);
+  };
+
+  /**
+   * Request an artists top tracks.
+   * @param accessToken Access token provided by Spotify.
+   * @param artistId Id of the artist.
+   * @returns Spotify track objects.
+   */
+  const getArtistTopTracks = async (accessToken: string, artistId: string) => {
+    const endpoint = `artists/${artistId}/top-tracks`;
+    return await spotifyGet(endpoint, accessToken);
+  };
+
+  /**
+   * Returns all tracks played by the user after timestamp specified.
+   * @param accessToken Access token provided by Spotify.
+   * @param after Unix timestamp in milliseconds.
+   * @returns Spotify track objects.
+   */
+  const getRecentlyPlayed = async (
+    accessToken: string,
+    after: number,
+    limit: number
+  ) => {
+    const endpoint = `me/player/recently-played?limit=${limit}`;
+    return await spotifyGet(endpoint, accessToken);
+  };
+
+  /**
+   * Get the track being currently played on the users Spotify account.
+   * @param accessToken Access token provided by Spotify.
+   * @returns Spotify track object
+   */
+  const getCurrentlyPlayingTrack = async (accessToken: string) => {
+    const endpoint = `me/player/currently-playing`;
+    return await spotifyGet(endpoint, accessToken);
+  };
+
   return {
     requestAccessToken,
     requestRefreshedAccessToken,
     getTrack,
     getAlbum,
-    getArtist
+    getAlbumTracks,
+    getArtist,
+    getArtistAlbums,
+    getArtistTopTracks,
+    getRecentlyPlayed,
+    getCurrentlyPlayingTrack
   };
 })();
 

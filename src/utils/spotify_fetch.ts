@@ -40,15 +40,19 @@ export const spotifyGet = async <T>(endpoint: string, accessToken: string) => {
 };
 
 /**
- * Spotify wrapper for POST requests to https://accounts.spotify.com/v1/token.
+ * Spotify wrapper for POST requests to https://accounts.spotify.com/v1.
  * Used to get the initial access token and future access tokens via the refresh token.
  * Handles the authentication Spotify Web API error format (AuthenticationError).
  * @param body Body of POST request.
  * @param init fetch settings object
  * @returns Spotify JSON object for the requested resource.
  */
-export const spotifyPost = async <T>(body: BodyInit, init?: RequestInit) => {
-  const url = `${config.spotify.accountsUrl}/token`;
+export const spotifyPost = async <T>(
+  endpoint: string,
+  body: BodyInit,
+  init?: RequestInit
+) => {
+  const url = `${config.spotify.accountsUrl}/${endpoint}`;
   try {
     return await post<T>(url, body, init);
   } catch (error) {

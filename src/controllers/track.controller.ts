@@ -14,9 +14,11 @@ export const getTrack = async (
 ) => {
   try {
     const accessToken =
-      'BQCNKplqS6CQhQmfZmixB-9NfRf2Fh2ksh4L-2ORwDTAwaAxZVsfzVYkNEmZ74f9H9R4ncCOqBFChFY0z80lAmuG7p20EUwww-qkGjhIFScig6RCLo98x3fAYlU8dBXECDztTNIr7nWaKmpLl1unKRApEVOjwcj9JKYh1FlDaOtVCq-yIe8ElSf3r2M';
-    const trackId = '5kqIPrATaCc2LqxVWzQGbk';
-    const data = await spotifyApi.getTrack(accessToken, trackId);
+      'BQC44W6iWJtFSV9Kl3w_J0gPKKhfQ6FkKS-wyfaURSwMnZsRF3ACt4lLY1a64fshCc5SiOQQgkEpC5pK24Dx9dxwtvpG0lZ7UHfpwZlzrAK9RNbgbGGK_7lWJDlrLkbX_MKgms09J1_WkFhOzFSTYsr2AGWEE2TfPiG5bFh-fv6X5uXwDJPoIx7yMf8';
+    // const trackId = '5kqIPrATaCc2LqxVWzQGbk';
+    // const data = await spotifyApi.getTrack(accessToken, trackId);
+    // const data = await spotifyApi.getRecentlyPlayed(accessToken, 1, 30);
+    const data = await spotifyApi.getCurrentlyPlayingTrack(accessToken);
     return res.json({ data });
   } catch (error) {
     console.log('--------------ERROR--------------');
