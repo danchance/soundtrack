@@ -9,12 +9,12 @@ interface GenreAttributes {
 }
 
 /**
- * All attributes are requrired at model creation
+ * All attributes are requrired at model creation.
  */
 type GenreCreationAttributes = GenreAttributes;
 
 /**
- * Genre model definition.
+ * Sequelize model definition for Genre table.
  */
 export default (
   sequelize: Sequelize

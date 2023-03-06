@@ -22,12 +22,12 @@ interface AlbumAttributes {
 }
 
 /**
- * All attributes are requrired at model creation
+ * All attributes are requrired at model creation.
  */
 type AlbumCreationAttributes = AlbumAttributes;
 
 /**
- * Album model definition.
+ * Sequelize model definition for Album table.
  */
 export default (
   sequelize: Sequelize

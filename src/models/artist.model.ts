@@ -10,12 +10,12 @@ interface ArtistAttributes {
 }
 
 /**
- * All attributes are requrired at model creation
+ * All attributes are requrired at model creation.
  */
 type ArtistCreationAttributes = ArtistAttributes;
 
 /**
- * Artist model definition.
+ * Sequelize model definition for Artist table.
  */
 export default (
   sequelize: Sequelize

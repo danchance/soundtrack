@@ -17,12 +17,12 @@ interface UserTrackHistoryAttributes {
 }
 
 /**
- * All attributes are requrired at model creation
+ * All attributes are requrired at model creation.
  */
 type UserTrackHistoryCreationAttributes = UserTrackHistoryAttributes;
 
 /**
- * UserTrackHistory model definition.
+ * Sequelize model definition for UserTrackHistory table.
  */
 export default (
   sequelize: Sequelize

@@ -17,12 +17,12 @@ interface TrackAttributes {
 }
 
 /**
- * All attributes are requrired at model creation
+ * All attributes are requrired at model creation.
  */
 type TrackCreationAttributes = TrackAttributes;
 
 /**
- * Track model definition.
+ * Sequelize model definition for Track table.
  */
 export default (
   sequelize: Sequelize
