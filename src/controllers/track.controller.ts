@@ -21,17 +21,17 @@ export const getTrack = async (
     // const data = await spotifyApi.getTrack(accessToken, trackId);
     // const data = await spotifyApi.getRecentlyPlayed(accessToken, 1, 30);
     // const data = await spotifyApi.getCurrentlyPlayingTrack(accessToken);
-    console.log(
-      await userDb.createUser({
-        id: 1234,
-        username: 'username2',
-        spotifyAccessToken: 'token1',
-        spotifyRefreshToken: 'token1',
-        spotifyTokenExpires: new Date(Date.now())
-      })
-    );
-    // userDb.getUserById('123');
-    console.log(await userDb.updateUser('123', { username: 'username2' }));
+    // console.log(
+    //   await userDb.createUser({
+    //     id: 1234,
+    //     username: 'username2',
+    //     spotifyAccessToken: 'token1',
+    //     spotifyRefreshToken: 'token1',
+    //     spotifyTokenExpires: new Date(Date.now())
+    //   })
+    // );
+    await userDb.getUserById('1234');
+    // console.log(await userDb.updateUser('123', { username: 'username2' }));
     return res.json({});
   } catch (error) {
     console.log('--------------ERROR--------------');
