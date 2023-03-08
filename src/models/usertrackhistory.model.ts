@@ -9,29 +9,26 @@ import {
 /**
  * Define interface for UserTrackHistory attributes.
  */
-interface UserTrackHistoryAttributes {
-  id: number;
+export interface IUserTrackHistory {
+  id?: number;
   userId: ForeignKey<number>;
   trackId: ForeignKey<string>;
-  playedAt: string;
+  playedAt: Date;
 }
 
 /**
  * All attributes are requrired at model creation.
  */
-type UserTrackHistoryCreationAttributes = UserTrackHistoryAttributes;
+type UserTrackHistoryCreationAttributes = IUserTrackHistory;
 
 /**
  * Sequelize model definition for UserTrackHistory table.
  */
 export default (
   sequelize: Sequelize
-): ModelDefined<
-  UserTrackHistoryAttributes,
-  UserTrackHistoryCreationAttributes
-> => {
+): ModelDefined<IUserTrackHistory, UserTrackHistoryCreationAttributes> => {
   const UserTrackHistory = sequelize.define<
-    Model<UserTrackHistoryAttributes, UserTrackHistoryCreationAttributes>
+    Model<IUserTrackHistory, UserTrackHistoryCreationAttributes>
   >(
     'UserTrackHistory',
     {
@@ -59,7 +56,7 @@ export default (
         }
       },
       playedAt: {
-        type: DataTypes.STRING,
+        type: DataTypes.DATE,
         unique: 'compositeKey',
         allowNull: false
       }

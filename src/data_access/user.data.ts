@@ -1,6 +1,6 @@
-import { IUser } from '../models/user.model';
+import { IUser } from '../models/user.model.js';
 import { models } from '../models/_index.js';
-import { RecordNotFoundError } from './errors';
+import { RecordNotFoundError } from './errors.js';
 
 /**
  * Database functions used to manage all operations on User records.
