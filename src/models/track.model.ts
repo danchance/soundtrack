@@ -9,7 +9,7 @@ import {
 /**
  * Define interface for Track attributes.
  */
-interface TrackAttributes {
+export interface ITrack {
   id: string;
   name: string;
   duration: number;
@@ -19,17 +19,15 @@ interface TrackAttributes {
 /**
  * All attributes are requrired at model creation.
  */
-type TrackCreationAttributes = TrackAttributes;
+type TrackCreationAttributes = ITrack;
 
 /**
  * Sequelize model definition for Track table.
  */
 export default (
   sequelize: Sequelize
-): ModelDefined<TrackAttributes, TrackCreationAttributes> => {
-  const Track = sequelize.define<
-    Model<TrackAttributes, TrackCreationAttributes>
-  >(
+): ModelDefined<ITrack, TrackCreationAttributes> => {
+  const Track = sequelize.define<Model<ITrack, TrackCreationAttributes>>(
     'Track',
     {
       id: {
