@@ -6,18 +6,18 @@ import { Sequelize, DataTypes, ModelDefined, Model } from 'sequelize';
 export interface IUser {
   id: number;
   username: string;
-  spotifyAccessToken: string;
-  spotifyRefreshToken: string;
-  spotifyTokenExpires: Date;
+  spotifyAccessToken?: string;
+  spotifyRefreshToken?: string;
+  spotifyTokenExpires?: Date;
 }
 
 /**
- * All attributes are requrired at model creation
+ * All attributes are requrired at model creation.
  */
 type UserCreationAttributes = IUser;
 
 /**
- * User model definition.
+ * Sequelize model definition for User table.
  */
 export default (
   sequelize: Sequelize

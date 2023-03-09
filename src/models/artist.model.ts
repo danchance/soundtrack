@@ -3,26 +3,24 @@ import { Sequelize, DataTypes, ModelDefined, Model } from 'sequelize';
 /**
  * Define interface for Artist attributes.
  */
-interface ArtistAttributes {
+export interface IArtist {
   id: string;
   name: string;
   image: string;
 }
 
 /**
- * All attributes are requrired at model creation
+ * All attributes are requrired at model creation.
  */
-type ArtistCreationAttributes = ArtistAttributes;
+type ArtistCreationAttributes = IArtist;
 
 /**
- * Artist model definition.
+ * Sequelize model definition for Artist table.
  */
 export default (
   sequelize: Sequelize
-): ModelDefined<ArtistAttributes, ArtistCreationAttributes> => {
-  const Artist = sequelize.define<
-    Model<ArtistAttributes, ArtistCreationAttributes>
-  >(
+): ModelDefined<IArtist, ArtistCreationAttributes> => {
+  const Artist = sequelize.define<Model<IArtist, ArtistCreationAttributes>>(
     'Artist',
     {
       id: {

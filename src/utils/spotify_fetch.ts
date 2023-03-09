@@ -2,6 +2,7 @@ import config from '../config/general.config.js';
 import { Response } from 'node-fetch';
 import { get, post } from '../utils/fetch_wrapper.js';
 import { BodyInit, RequestInit } from 'node-fetch';
+import { AccessTokenError, RateLimitError } from '../data_access/errors.js';
 
 type StandardError = {
   error: {
@@ -33,7 +34,14 @@ export const spotifyGet = async <T>(endpoint: string, accessToken: string) => {
   } catch (error) {
     if (error instanceof Response) {
       const err = (await error.json()) as StandardError;
-      throw new Error(`Status ${err.error.status}: ${err.error.message}`);
+      switch (err.error.status) {
+        case 401:
+          throw new AccessTokenError(err.error.message);
+        case 429:
+          throw new RateLimitError(err.error.message);
+        default:
+          throw new Error(`Status ${err.error.status}: ${err.error.message}`);
+      }
     }
     throw error;
   }

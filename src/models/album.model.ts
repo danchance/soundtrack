@@ -3,7 +3,7 @@ import { Sequelize, DataTypes, ModelDefined, Model } from 'sequelize';
 /**
  * Enum for album types returned by the Spotify API
  */
-enum AlbumType {
+export enum AlbumType {
   ALBUM = 'album',
   COMPILATION = 'compliation',
   SINGLE = 'single'
@@ -12,7 +12,7 @@ enum AlbumType {
 /**
  * Define interface for Album attributes.
  */
-interface AlbumAttributes {
+export interface IAlbum {
   id: string;
   name: string;
   type: AlbumType;
@@ -22,19 +22,17 @@ interface AlbumAttributes {
 }
 
 /**
- * All attributes are requrired at model creation
+ * All attributes are requrired at model creation.
  */
-type AlbumCreationAttributes = AlbumAttributes;
+type AlbumCreationAttributes = IAlbum;
 
 /**
- * Album model definition.
+ * Sequelize model definition for Album table.
  */
 export default (
   sequelize: Sequelize
-): ModelDefined<AlbumAttributes, AlbumCreationAttributes> => {
-  const Album = sequelize.define<
-    Model<AlbumAttributes, AlbumCreationAttributes>
-  >(
+): ModelDefined<IAlbum, AlbumCreationAttributes> => {
+  const Album = sequelize.define<Model<IAlbum, AlbumCreationAttributes>>(
     'Album',
     {
       id: {

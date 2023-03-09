@@ -9,7 +9,7 @@ import checkUser from './middleware/user.js';
 /**
  * Syncronize models with the database
  */
-sequelize.sync();
+// sequelize.sync({ force: true });
 
 const app: Express = express();
 
