@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { UniqueConstraintError } from 'sequelize';
+import genreDb from '../data_access/genre.data.js';
 import spotifyApi from '../data_access/spotify.data.js';
 import userDb from '../data_access/user.data.js';
 
@@ -30,8 +31,17 @@ export const getTrack = async (
     //     spotifyTokenExpires: new Date(Date.now())
     //   })
     // );
-    await userDb.getUserById('1234');
+    // await userDb.getUserById('1234');
     // console.log(await userDb.updateUser('123', { username: 'username2' }));
+    // await genreDb.bulkCreateGenres([
+    //   { id: '1', name: 'genre 1' },
+    //   { id: '2', name: 'genre 2' },
+    //   { id: '3', name: 'genre 3' }
+    // ]);
+    const genres = await genreDb.getGenres({});
+    console.log(genres.count);
+    // console.log(genres.rows[0]);
+    console.log(genres.rows);
     return res.json({});
   } catch (error) {
     console.log('--------------ERROR--------------');

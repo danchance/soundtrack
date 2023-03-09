@@ -18,7 +18,7 @@ const artistDb = (() => {
 
   /**
    * Adds multiple Artist records to the Artist table.
-   * @param artists Array of albums to create.
+   * @param artists Array of genres to create.
    * @returns
    */
   const bulkCreateArtists = async (artists: Array<IArtist>) => {
@@ -31,7 +31,7 @@ const artistDb = (() => {
    * Retrieves a Artist record by Id.
    * @param artistId Id of the artist to retrieve.
    * @returns The requested artist record.
-   * @throws RecordNotFoundError if no album with the given Id exists.
+   * @throws RecordNotFoundError if no genre with the given Id exists.
    */
   const getArtistById = async (artistId: string): Promise<IArtist> => {
     const artist = await models.artist.findByPk(artistId);
@@ -51,8 +51,14 @@ const artistDb = (() => {
    * @returns The requested artist records and record count.
    * @throws RecordNotFoundError if no artist records exist.
    */
-  const getArtists = async (query: FindAndCountOptions<IArtist>) => {
-    const artists = await models.artist.findAndCountAll(query);
+  const getArtists = async (
+    query: FindAndCountOptions<IArtist>
+  ): Promise<{ count: number; rows: Array<IArtist> }> => {
+    const artists = (await models.artist.findAndCountAll({
+      ...query,
+      raw: true,
+      nest: true
+    })) as any;
     if (artists === null) {
       throw new RecordNotFoundError(
         'Artist',

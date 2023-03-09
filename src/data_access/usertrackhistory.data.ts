@@ -38,8 +38,12 @@ const userTrackHistoryDB = (() => {
    */
   const getUserTracks = async (
     query: FindAndCountOptions<IUserTrackHistory>
-  ) => {
-    const userTracks = await models.userTrackHistory.findAndCountAll(query);
+  ): Promise<{ count: number; rows: Array<IUserTrackHistory> }> => {
+    const userTracks = (await models.userTrackHistory.findAndCountAll({
+      ...query,
+      raw: true,
+      nest: true
+    })) as any;
     if (userTracks === null) {
       throw new RecordNotFoundError(
         'UserTrack',

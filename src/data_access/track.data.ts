@@ -51,8 +51,14 @@ const trackDb = (() => {
    * @returns The requested track records and record count.
    * @throws RecordNotFoundError if no track records exist.
    */
-  const getTracks = async (query: FindAndCountOptions<ITrack>) => {
-    const tracks = await models.track.findAndCountAll(query);
+  const getTracks = async (
+    query: FindAndCountOptions<ITrack>
+  ): Promise<{ count: number; rows: Array<ITrack> }> => {
+    const tracks = (await models.track.findAndCountAll({
+      ...query,
+      raw: true,
+      nest: true
+    })) as any;
     if (tracks === null) {
       throw new RecordNotFoundError(
         'Track',

@@ -51,8 +51,14 @@ const albumDb = (() => {
    * @returns The requested album records and record count.
    * @throws RecordNotFoundError if no album records exist.
    */
-  const getAlbums = async (query: FindAndCountOptions<IAlbum>) => {
-    const albums = await models.album.findAndCountAll(query);
+  const getAlbums = async (
+    query: FindAndCountOptions<IAlbum>
+  ): Promise<{ count: number; rows: Array<IAlbum> }> => {
+    const albums = (await models.album.findAndCountAll({
+      ...query,
+      raw: true,
+      nest: true
+    })) as any;
     if (albums === null) {
       throw new RecordNotFoundError(
         'Album',

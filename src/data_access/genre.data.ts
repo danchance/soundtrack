@@ -18,7 +18,7 @@ const genreDb = (() => {
 
   /**
    * Adds multiple Genre records to the Genre table.
-   * @param genres Array of albums to create.
+   * @param genres Array of genres to create.
    * @returns
    */
   const bulkCreateGenres = async (genres: Array<IGenre>) => {
@@ -31,7 +31,7 @@ const genreDb = (() => {
    * Retrieves a Genre record by Id.
    * @param genreId Id of the genre to retrieve.
    * @returns The requested genre record.
-   * @throws RecordNotFoundError if no album with the given Id exists.
+   * @throws RecordNotFoundError if no genre with the given Id exists.
    */
   const getGenreById = async (genreId: string): Promise<IGenre> => {
     const genre = await models.genre.findByPk(genreId);
@@ -51,8 +51,13 @@ const genreDb = (() => {
    * @returns The requested genre records and record count.
    * @throws RecordNotFoundError if no genre records exist.
    */
-  const getGenres = async (query: FindAndCountOptions<IGenre>) => {
-    const genres = await models.genre.findAndCountAll(query);
+  const getGenres = async (
+    query: FindAndCountOptions<IGenre>
+  ): Promise<{ count: number; rows: Array<IGenre> }> => {
+    const genres = (await models.genre.findAndCountAll({
+      ...query,
+      raw: true
+    })) as any;
     if (genres === null) {
       throw new RecordNotFoundError(
         'Genre',
