@@ -23,3 +23,46 @@ export class RecordNotFoundError extends Error {
     this.recordType = recordType;
   }
 }
+
+/**
+ * Custom error class for errors relating to an expired, bad or otherwise invalid access
+ * token.
+ */
+export class AccessTokenError extends Error {
+  /**
+   * Creates a new instance of AccessTokenError.
+   * @param params Additional parameters to pass ot the Error constructor.
+   */
+  constructor(...params: Array<any>) {
+    // Pass remaining arguments (including vendor specific ones) to parent constructor
+    super(...params);
+
+    // Maintains proper stack trace for where our error was thrown
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, RecordNotFoundError);
+    }
+
+    this.name = 'AccessTokenError';
+  }
+}
+
+/**
+ * Custom error class for when the app has exceeded its rate limit to an external API.
+ */
+export class RateLimitError extends Error {
+  /**
+   * Creates a new instance of RateLimitError.
+   * @param params Additional parameters to pass ot the Error constructor.
+   */
+  constructor(...params: Array<any>) {
+    // Pass remaining arguments (including vendor specific ones) to parent constructor
+    super(...params);
+
+    // Maintains proper stack trace for where our error was thrown
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, RecordNotFoundError);
+    }
+
+    this.name = 'RateLimitError';
+  }
+}
