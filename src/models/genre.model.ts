@@ -3,7 +3,7 @@ import { Sequelize, DataTypes, ModelDefined, Model } from 'sequelize';
 /**
  * Define interface for Genre attributes.
  */
-interface GenreAttributes {
+export interface IGenre {
   id: string;
   name: string;
 }
@@ -11,17 +11,15 @@ interface GenreAttributes {
 /**
  * All attributes are requrired at model creation.
  */
-type GenreCreationAttributes = GenreAttributes;
+type GenreCreationAttributes = IGenre;
 
 /**
  * Sequelize model definition for Genre table.
  */
 export default (
   sequelize: Sequelize
-): ModelDefined<GenreAttributes, GenreCreationAttributes> => {
-  const Genre = sequelize.define<
-    Model<GenreAttributes, GenreCreationAttributes>
-  >(
+): ModelDefined<IGenre, GenreCreationAttributes> => {
+  const Genre = sequelize.define<Model<IGenre, GenreCreationAttributes>>(
     'Genre',
     {
       id: {
