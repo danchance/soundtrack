@@ -4,17 +4,18 @@ import checkJwt from '../middleware/auth.js';
 
 const router: Router = Router();
 
-/**
- * Test protecting this route
- */
-router.get('/:id', checkJwt, userController.getUser);
+router.get('/:id', userController.getUser);
 
-router.get('/:id/tracks/history', userController.getUserHistory);
+router.get('/:id/overview', userController.getUserOverview);
 
-router.get('/:id/tracks/top', userController.getUserTracksTop);
+router.get('/:id/recap', userController.getUserRecap);
 
-router.get('/:id/albums/top', userController.getUserAlbumsTop);
+router.get('/:id/discover', userController.getUserDiscover);
 
-router.get('/:id/artists/top', userController.getUserArtistsTop);
+router.get('/:id/tracks', userController.getUserTracks);
+
+router.get('/:id/albums', userController.getUserAlbums);
+
+router.get('/:id/artists', userController.getUserArtists);
 
 export default router;

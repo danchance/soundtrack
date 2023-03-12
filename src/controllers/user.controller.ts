@@ -16,12 +16,12 @@ export const getUser = (req: Request, res: Response, next: NextFunction) => {
 };
 
 /**
- * Controller for the users/:id/history endpoint.
+ * Controller for the users/:id/overview endpoint.
  * @param req Express Request object
  * @param res Express Response object
  * @param next next middleware function
  */
-export const getUserHistory = (
+export const getUserOverview = (
   req: Request,
   res: Response,
   next: NextFunction
@@ -34,12 +34,12 @@ export const getUserHistory = (
 };
 
 /**
- * Controller for the users/:id/tracks/top endpoint.
+ * Controller for the users/:id/recap endpoint.
  * @param req Express Request object
  * @param res Express Response object
  * @param next next middleware function
  */
-export const getUserTracksTop = (
+export const getUserRecap = (
   req: Request,
   res: Response,
   next: NextFunction
@@ -52,12 +52,12 @@ export const getUserTracksTop = (
 };
 
 /**
- * Controller for the users/:id/albums/top endpoint.
+ * Controller for the users/:id/discover endpoint.
  * @param req Express Request object
  * @param res Express Response object
  * @param next next middleware function
  */
-export const getUserAlbumsTop = (
+export const getUserDiscover = (
   req: Request,
   res: Response,
   next: NextFunction
@@ -70,12 +70,48 @@ export const getUserAlbumsTop = (
 };
 
 /**
- * Controller for the users/:id/artists/top endpoint.
+ * Controller for the users/:id/tracks endpoint.
  * @param req Express Request object
  * @param res Express Response object
  * @param next next middleware function
  */
-export const getUserArtistsTop = (
+export const getUserTracks = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    return res.json({});
+  } catch (error) {
+    return next(error);
+  }
+};
+
+/**
+ * Controller for the users/:id/albums endpoint.
+ * @param req Express Request object
+ * @param res Express Response object
+ * @param next next middleware function
+ */
+export const getUserAlbums = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    return res.json({});
+  } catch (error) {
+    return next(error);
+  }
+};
+
+/**
+ * Controller for the users/:id/artists endpoint.
+ * @param req Express Request object
+ * @param res Express Response object
+ * @param next next middleware function
+ */
+export const getUserArtists = (
   req: Request,
   res: Response,
   next: NextFunction

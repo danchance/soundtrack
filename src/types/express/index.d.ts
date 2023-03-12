@@ -1,4 +1,4 @@
-import { User } from '../custom.ts';
+import { User } from '../custom.js';
 
 // export {};
 
