@@ -20,7 +20,7 @@ const spotifyApi = (() => {
   /**
    * Request an access token from the Spotify API. Used when the user first authorizes
    * access to their Spotify account.
-   * @param code Spotify authorization code returned after intial authorization request.
+   * @param code Spotify authorization code from the initial authorization request.
    * @param redirectUri redirect_uri supplied when requesting the authorization code.
    * @returns
    */
