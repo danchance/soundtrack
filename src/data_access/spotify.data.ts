@@ -7,6 +7,32 @@ type AuthenticationResponse = {
   refresh_token?: string;
 };
 
+type Artist = {
+  id: string;
+  name: string;
+};
+
+type Album = {
+  id: string;
+  name: string;
+  artists: Array<Artist>;
+  images: Array<{ height: number; url: string; width: number }>;
+  type: any;
+  release_date: string;
+};
+
+type Track = {
+  id: string;
+  name: string;
+  duration_ms: number;
+  album: Album;
+  artist: Array<Artist>;
+};
+
+type RecentlyPlayedTracks = {
+  items: Array<{ track: Track; played_at: string }>;
+};
+
 const spotifyApi = (() => {
   // Build request header for requesting access token.
   // Authorization header must be base64 encoded.
@@ -128,16 +154,20 @@ const spotifyApi = (() => {
   /**
    * Returns all tracks played by the user after timestamp specified.
    * @param accessToken Access token provided by Spotify.
+   * @param limit Maximum number of tracks to return
    * @param after Unix timestamp in milliseconds.
    * @returns Spotify track objects.
    */
   const getRecentlyPlayed = async (
     accessToken: string,
-    after: number,
-    limit: number
-  ) => {
-    const endpoint = `me/player/recently-played?limit=${limit}`;
-    return await spotifyGet(endpoint, accessToken);
+    limit: number,
+    after?: number
+  ): Promise<RecentlyPlayedTracks> => {
+    let endpoint = `me/player/recently-played?limit=${limit}`;
+    if (typeof after !== 'undefined') {
+      endpoint = `${endpoint}&after=${after}`;
+    }
+    return (await spotifyGet(endpoint, accessToken)) as RecentlyPlayedTracks;
   };
 
   /**

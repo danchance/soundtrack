@@ -1,12 +1,11 @@
 import { IUserTrackHistory } from '../models/usertrackhistory.model.js';
 import { models } from '../models/_index.js';
-import { RecordNotFoundError } from './errors.js';
 import { DestroyOptions, FindAndCountOptions } from 'sequelize';
 
 /**
  * Database functions used to manage all operations on UserTrack records.
  */
-const userTrackHistoryDB = (() => {
+const userTrackHistoryDb = (() => {
   /**
    * Adds a new UserTrack record to the UserTrackHistory table.
    * @param userTrack The UserTrack to create.
@@ -34,7 +33,6 @@ const userTrackHistoryDB = (() => {
    * match the query.
    * @param query Search query to execute.
    * @returns The requested UserTrack records and record count.
-   * @throws RecordNotFoundError if no UserTrack records exist.
    */
   const getUserTracks = async (
     query: FindAndCountOptions<IUserTrackHistory>
@@ -44,12 +42,6 @@ const userTrackHistoryDB = (() => {
       raw: true,
       nest: true
     })) as any;
-    if (userTracks === null) {
-      throw new RecordNotFoundError(
-        'UserTrack',
-        `No UserTracks for query: ${query}  found`
-      );
-    }
     return userTracks;
   };
 
@@ -69,4 +61,4 @@ const userTrackHistoryDB = (() => {
   };
 })();
 
-export default userTrackHistoryDB;
+export default userTrackHistoryDb;

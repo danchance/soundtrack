@@ -28,67 +28,11 @@ export const getUserHistory = async (
   next: NextFunction
 ) => {
   try {
-    setTimeout(() => {
-      return res.json({
-        tracks: [
-          {
-            track: {
-              id: '1',
-              name: 'Track One',
-              duration: 191,
-              artwork:
-                'https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228',
-              artist: 'Artist One'
-            },
-            playedAt: new Date()
-          },
-          {
-            track: {
-              id: '2',
-              name: 'Track Two',
-              duration: 191,
-              artwork:
-                'https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228',
-              artist: 'Artist One'
-            },
-            playedAt: new Date()
-          },
-          {
-            track: {
-              id: '3',
-              name: 'Track Three',
-              duration: 191,
-              artwork:
-                'https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228',
-              artist: 'Artist One One One One One One'
-            },
-            playedAt: new Date()
-          },
-          {
-            track: {
-              id: '4',
-              name: 'Track Four Four Four Four Four',
-              duration: 191,
-              artwork:
-                'https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228',
-              artist: 'Artist One'
-            },
-            playedAt: new Date()
-          },
-          {
-            track: {
-              id: '5',
-              name: 'Track Five',
-              duration: 191,
-              artwork:
-                'https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228',
-              artist: 'Artist Two'
-            },
-            playedAt: new Date()
-          }
-        ]
-      });
-    }, 3000);
+    console.log(req.params.user);
+    const recentlyPlayed = await userService.updateTrackHistory(
+      'auth0|6416f24fd7a5ed86bc312ac7'
+    );
+    return res.json({ tracks: recentlyPlayed });
   } catch (error) {
     return next(error);
   }
@@ -216,9 +160,12 @@ export const postSpotifyAuth = async (
       req.body.code,
       req.body.redirectUri
     );
-    console.log('User added');
     return res.json({ status: 'success' });
   } catch (error) {
+    // TODO: Errors to handle
+    // - SpotifyAPI
+    // - User database
+    // - Param validation
     return next(error);
   }
 };
