@@ -1,7 +1,13 @@
 import config from '../config/general.config.js';
 import { NextFunction, Request, Response } from 'express';
 import jwksClient from 'jwks-rsa';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
+
+declare module 'jsonwebtoken' {
+  export interface ExtendedJwtPayload extends jwt.JwtPayload {
+    username: string;
+  }
+}
 
 type DecodedJWTHeader = {
   alg: string;
@@ -56,7 +62,11 @@ const checkUser = (req: Request, res: Response, next: NextFunction) => {
     (error, decoded) => {
       if (error) return next();
       // Signature is valid, add user object
-      req['user'] = { id: decoded!.sub };
+      const { sub, username } = decoded as jwt.ExtendedJwtPayload;
+      req['user'] = {
+        id: sub,
+        username: username
+      };
       return next();
     }
   );

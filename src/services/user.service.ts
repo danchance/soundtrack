@@ -1,5 +1,5 @@
-import spotifyApi from '../data_access/spotify.data';
-import userDb from '../data_access/user.data';
+import spotifyApi from '../data_access/spotify.data.js';
+import userDb from '../data_access/user.data.js';
 
 const userService = (() => {
   /**

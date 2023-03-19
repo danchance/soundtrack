@@ -5,6 +5,7 @@ import routes from './routes/_index.js';
 import { fileURLToPath } from 'url';
 import { sequelize } from './models/_index.js';
 import checkUser from './middleware/user.js';
+import userDb from './data_access/user.data.js';
 
 /**
  * Syncronize models with the database
@@ -31,11 +32,31 @@ app.use(express.json());
 app.use(checkUser);
 
 /**
+ * In production Auth0 will POST new users who sign up to the soundtrack
+ * database, however this does not occur in development, as the dev
+ * server is run locally. Instead in development we use the Auth0 signed
+ * access token to check if the user exists in the soundtrack database
+ * and if not add them.
+ */
+if (process.env.NODE_ENV === 'development') {
+  app.use(async (req: Request, res: Response, next: NextFunction) => {
+    if (req.user === undefined) return next();
+    try {
+      await userDb.createUser({ id: req.user.id, username: req.user.username });
+    } catch (error) {
+      // Catch and ignore all errors in this situation.
+      // UniqueContraintError usually thrown.
+    }
+    return next();
+  });
+}
+
+/**
  * CORS
  */
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: ['http://127.0.0.1:3000', 'https://soundtrack.uk.auth0.com/'],
     credentials: true
   })
 );
@@ -49,7 +70,7 @@ app.use('/api', routes);
  * Error reporting: 404 and 500.
  */
 app.use((req: Request, res: Response, next: NextFunction) => {
-  return res.status(404).json({ ERROR: 'Not Found' });
+  return res.status(404).json({ ERROR: 'Resource Not Found' });
 });
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   console.log(error.stack);
