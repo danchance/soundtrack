@@ -42,7 +42,8 @@ const albumService = (() => {
           type: album.album_type,
           trackNum: album.total_tracks,
           releaseYear: 2022,
-          artwork: album.images[0].url
+          artwork: album.images[0].url,
+          artistId: album.artists[0].id
         });
         await addAlbumTracks(album, accessToken);
       } catch (error) {

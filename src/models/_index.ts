@@ -55,11 +55,14 @@ models.artist.belongsToMany(models.track, { through: 'TrackArtists' });
 
 /**
  * Setup Album model associations.
- *  - AlbumArtists junction table: many-to-many.
+ *  - ArtistId foreign key: many-to-one.
  *  - AlbumGenres junction table: many-to-many
  */
-models.album.belongsToMany(models.artist, { through: 'AlbumArtists' });
-models.artist.belongsToMany(models.album, { through: 'AlbumArtists' });
+models.artist.hasMany(models.album, {
+  onDelete: 'RESTRICT',
+  onUpdate: 'CASCADE'
+});
+models.album.belongsTo(models.artist);
 
 models.album.belongsToMany(models.genre, { through: 'AlbumGenres' });
 models.genre.belongsToMany(models.album, { through: 'AlbumGenres' });

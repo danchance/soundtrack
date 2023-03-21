@@ -19,6 +19,7 @@ export interface IAlbum {
   trackNum: number;
   releaseYear: number;
   artwork: string;
+  artistId?: string;
 }
 
 /**
@@ -69,6 +70,14 @@ export default (
       artwork: {
         type: DataTypes.STRING,
         allowNull: false
+      },
+      artistId: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        references: {
+          model: 'artists',
+          key: 'id'
+        }
       }
     },
     {

@@ -5,6 +5,7 @@ import userDb from '../data_access/user.data.js';
 import userTrackHistoryDb from '../data_access/usertrackhistory.data.js';
 import { IUserTrackHistory } from '../models/usertrackhistory.model.js';
 import trackService from './track.service.js';
+import { models } from '../models/_index.js';
 
 /**
  * Handles all user logic.
@@ -105,17 +106,23 @@ const userService = (() => {
     });
     await trackService.addTracks(trackList, accessToken);
     await userTrackHistoryDb.bulkCreateUserTracks(trackHistoryList);
-    // TODO: return 10 last entries from database
-    if (trackHistoryList.length > 10) {
-      return trackHistoryList.slice(0, 10);
-    }
+    // Return 10 last entries from database
     trackHistoryList = (
       await userTrackHistoryDb.getUserTracks({
+        attributes: ['id', 'playedAt'],
         where: {
           userId: userId
         },
         order: [['playedAt', 'DESC']],
-        limit: 10
+        limit: 10,
+        include: [
+          {
+            model: models.track,
+            include: [
+              { model: models.album, include: [{ model: models.artist }] }
+            ]
+          }
+        ]
       })
     ).rows;
     console.log(trackHistoryList);
