@@ -7,21 +7,23 @@ type AuthenticationResponse = {
   refresh_token?: string;
 };
 
-type Artist = {
+export type Artist = {
   id: string;
   name: string;
+  images?: Array<{ height: number; url: string; width: number }>;
 };
 
-type Album = {
+export type Album = {
   id: string;
   name: string;
   artists: Array<Artist>;
   images: Array<{ height: number; url: string; width: number }>;
-  type: any;
+  album_type: any;
+  total_tracks: number;
   release_date: string;
 };
 
-type Track = {
+export type Track = {
   id: string;
   name: string;
   duration_ms: number;
@@ -31,6 +33,16 @@ type Track = {
 
 type RecentlyPlayedTracks = {
   items: Array<{ track: Track; played_at: string }>;
+};
+
+type AlbumTracks = {
+  next: null | string;
+  items: Array<Track>;
+};
+
+type ArtistAlbums = {
+  next: null | string;
+  items: Array<Album>;
 };
 
 const spotifyApi = (() => {
@@ -111,11 +123,16 @@ const spotifyApi = (() => {
    * Request all tracks on an album.
    * @param accessToken Access token provided by Spotify.
    * @param albumId Id of the album.
+   * @param limit Maximum number of tracks to return.
    * @returns Spotify album object.
    */
-  const getAlbumTracks = async (accessToken: string, albumId: string) => {
-    const endpoint = `albums/${albumId}/tracks`;
-    return await spotifyGet(endpoint, accessToken);
+  const getAlbumTracks = async (
+    accessToken: string,
+    albumId: string,
+    limit: number
+  ): Promise<AlbumTracks> => {
+    const endpoint = `albums/${albumId}/tracks?limit=${limit}`;
+    return (await spotifyGet(endpoint, accessToken)) as AlbumTracks;
   };
 
   /**
@@ -124,20 +141,28 @@ const spotifyApi = (() => {
    * @param artistId Id of the artist.
    * @returns Spotify artist object.
    */
-  const getArtist = async (accessToken: string, artistId: string) => {
+  const getArtist = async (
+    accessToken: string,
+    artistId: string
+  ): Promise<Artist> => {
     const endpoint = `artists/${artistId}`;
-    return await spotifyGet(endpoint, accessToken);
+    return (await spotifyGet(endpoint, accessToken)) as Artist;
   };
 
   /**
    * Request all albums for an artist.
    * @param accessToken Access token provided by Spotify.
    * @param artistId Id of the artist.
+   * @param limit Maximum number of tracks to return.
    * @returns Spotify album objects.
    */
-  const getArtistAlbums = async (accessToken: string, artistId: string) => {
-    const endpoint = `artists/${artistId}/albums`;
-    return await spotifyGet(endpoint, accessToken);
+  const getArtistAlbums = async (
+    accessToken: string,
+    artistId: string,
+    limit: number
+  ): Promise<ArtistAlbums> => {
+    const endpoint = `artists/${artistId}/albums?limit=${limit}`;
+    return (await spotifyGet(endpoint, accessToken)) as ArtistAlbums;
   };
 
   /**
@@ -154,7 +179,7 @@ const spotifyApi = (() => {
   /**
    * Returns all tracks played by the user after timestamp specified.
    * @param accessToken Access token provided by Spotify.
-   * @param limit Maximum number of tracks to return
+   * @param limit Maximum number of tracks to return.
    * @param after Unix timestamp in milliseconds.
    * @returns Spotify track objects.
    */

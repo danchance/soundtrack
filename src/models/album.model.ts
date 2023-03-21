@@ -5,7 +5,7 @@ import { Sequelize, DataTypes, ModelDefined, Model } from 'sequelize';
  */
 export enum AlbumType {
   ALBUM = 'album',
-  COMPILATION = 'compliation',
+  COMPILATION = 'compilation',
   SINGLE = 'single'
 }
 

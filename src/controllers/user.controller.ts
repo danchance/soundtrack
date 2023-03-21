@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import userDb from '../data_access/user.data.js';
 import userService from '../services/user.service.js';
 
 /**
@@ -28,10 +29,14 @@ export const getUserHistory = async (
   next: NextFunction
 ) => {
   try {
-    console.log(req.params.user);
-    const recentlyPlayed = await userService.updateTrackHistory(
-      'auth0|6416f24fd7a5ed86bc312ac7'
-    );
+    // Query param contains username, get the userId
+    const user = (
+      await userDb.getUsers({
+        limit: 1,
+        where: { username: req.params.user }
+      })
+    ).rows[0];
+    const recentlyPlayed = await userService.updateTrackHistory(user.id);
     return res.json({ tracks: recentlyPlayed });
   } catch (error) {
     return next(error);

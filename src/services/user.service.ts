@@ -1,8 +1,14 @@
+import { Op } from 'sequelize';
 import { RecordNotFoundError } from '../data_access/errors.js';
-import spotifyApi from '../data_access/spotify.data.js';
+import spotifyApi, { Track } from '../data_access/spotify.data.js';
 import userDb from '../data_access/user.data.js';
 import userTrackHistoryDb from '../data_access/usertrackhistory.data.js';
+import { IUserTrackHistory } from '../models/usertrackhistory.model.js';
+import trackService from './track.service.js';
 
+/**
+ * Handles all user logic.
+ */
 const userService = (() => {
   /**
    * Requests the first access token using the code returned by the Spotify API when
@@ -78,7 +84,6 @@ const userService = (() => {
       },
       order: [['playedAt', 'DESC']]
     });
-    console.log(lastPlay);
     let res;
     if (lastPlay.count !== 0) {
       // Add 1 second on to ensure Spotify does not include this item in
@@ -88,14 +93,33 @@ const userService = (() => {
     } else {
       res = await spotifyApi.getRecentlyPlayed(accessToken, 20);
     }
-    const list = res.items.map((item) => ({
-      userId: userId,
-      trackId: item.track.id,
-      playedAt: new Date(item.played_at)
-    }));
-    userTrackHistoryDb.bulkCreateUserTracks(list);
-    //TODO: return 10 last entries from database
-    return res.items;
+    let trackHistoryList: Array<IUserTrackHistory> = [];
+    const trackList: Array<Track> = [];
+    res.items.forEach((item) => {
+      trackHistoryList.push({
+        userId: userId,
+        trackId: item.track.id,
+        playedAt: new Date(item.played_at)
+      });
+      trackList.push(item.track);
+    });
+    await trackService.addTracks(trackList, accessToken);
+    await userTrackHistoryDb.bulkCreateUserTracks(trackHistoryList);
+    // TODO: return 10 last entries from database
+    if (trackHistoryList.length > 10) {
+      return trackHistoryList.slice(0, 10);
+    }
+    trackHistoryList = (
+      await userTrackHistoryDb.getUserTracks({
+        where: {
+          userId: userId
+        },
+        order: [['playedAt', 'DESC']],
+        limit: 10
+      })
+    ).rows;
+    console.log(trackHistoryList);
+    return trackHistoryList;
   };
 
   return {

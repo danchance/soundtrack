@@ -73,7 +73,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   return res.status(404).json({ ERROR: 'Resource Not Found' });
 });
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
-  console.log(error.stack);
+  console.log(error);
   return res.status(500).json({ ERROR: 'Internal server error' });
 });
 

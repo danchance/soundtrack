@@ -24,7 +24,8 @@ const userTrackHistoryDb = (() => {
    */
   const bulkCreateUserTracks = async (userTracks: Array<IUserTrackHistory>) => {
     return await models.userTrackHistory.bulkCreate(userTracks, {
-      validate: true
+      validate: true,
+      ignoreDuplicates: true
     });
   };
 

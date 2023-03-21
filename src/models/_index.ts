@@ -82,10 +82,10 @@ models.user.hasMany(models.userTrackHistory, {
 });
 models.userTrackHistory.belongsTo(models.user);
 
-// models.track.hasMany(models.userTrackHistory, {
-//   onDelete: 'RESTRICT',
-//   onUpdate: 'CASCADE'
-// });
-// models.userTrackHistory.belongsTo(models.track);
+models.track.hasMany(models.userTrackHistory, {
+  onDelete: 'RESTRICT',
+  onUpdate: 'CASCADE'
+});
+models.userTrackHistory.belongsTo(models.track);
 
 export { sequelize, models };

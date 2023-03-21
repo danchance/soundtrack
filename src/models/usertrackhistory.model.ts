@@ -12,8 +12,7 @@ import {
 export interface IUserTrackHistory {
   id?: number;
   userId: ForeignKey<string>;
-  // trackId: ForeignKey<string>;
-  trackId: string;
+  trackId: ForeignKey<string>;
   playedAt: Date;
 }
 
@@ -47,19 +46,14 @@ export default (
           key: 'id'
         }
       },
-      // trackId: {
-      //   type: DataTypes.STRING,
-      //   unique: 'compositeKey',
-      //   allowNull: false,
-      //   references: {
-      //     model: 'tracks',
-      //     key: 'id'
-      //   }
-      // },
       trackId: {
         type: DataTypes.STRING,
         unique: 'compositeKey',
-        allowNull: false
+        allowNull: false,
+        references: {
+          model: 'tracks',
+          key: 'id'
+        }
       },
       playedAt: {
         type: DataTypes.DATE,

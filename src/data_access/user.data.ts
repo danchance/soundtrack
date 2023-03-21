@@ -1,3 +1,4 @@
+import { FindAndCountOptions } from 'sequelize';
 import { IUser } from '../models/user.model.js';
 import { models } from '../models/_index.js';
 import { RecordNotFoundError } from './errors.js';
@@ -30,6 +31,23 @@ const userDb = (() => {
       );
     }
     return user.toJSON();
+  };
+
+  /**
+   * Retrieves User records for the query and the number of records that
+   * match the query.
+   * @param query Search query to execute.
+   * @returns The requested User records and record count.
+   */
+  const getUsers = async (
+    query: FindAndCountOptions<IUser>
+  ): Promise<{ count: number; rows: Array<IUser> }> => {
+    const users = (await models.user.findAndCountAll({
+      ...query,
+      raw: true,
+      nest: true
+    })) as any;
+    return users;
   };
 
   /**
@@ -72,6 +90,7 @@ const userDb = (() => {
   return {
     createUser,
     getUserById,
+    getUsers,
     updateUser,
     deleteUser
   };
