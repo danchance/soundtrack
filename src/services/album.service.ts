@@ -59,33 +59,18 @@ const albumService = (() => {
       album.id,
       50
     );
-    // TODO: change to bulk create
-    for (const track of albumTracks.items) {
-      try {
-        await trackDb.createTrack({
-          id: track.id,
-          name: track.name,
-          duration: track.duration_ms,
-          albumId: album.id
-        });
-      } catch (error) {
-        if (!(error instanceof UniqueConstraintError)) throw error;
-      }
-    }
+    const tracks = albumTracks.items.map((track) => {
+      return {
+        id: track.id,
+        name: track.name,
+        duration: track.duration_ms,
+        albumId: album.id
+      };
+    });
+    await trackDb.bulkCreateTracks(tracks);
   };
 
   return { addAlbum, addAlbumTracks };
 })();
-
-/**
- * export interface IAlbum {
-  id: string;
-  name: string;
-  type: AlbumType;
-  trackNum: number;
-  releaseYear: number;
-  artwork: string;
-}
- */
 
 export default albumService;

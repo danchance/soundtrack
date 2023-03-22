@@ -24,6 +24,7 @@ const sequelize: Sequelize = new Sequelize(
       acquire: devdb.pool.acquire,
       idle: devdb.pool.idle
     }
+    // logging: false
   }
 );
 

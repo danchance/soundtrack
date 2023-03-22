@@ -125,7 +125,6 @@ const userService = (() => {
         ]
       })
     ).rows;
-    console.log(trackHistoryList);
     return trackHistoryList;
   };
 
