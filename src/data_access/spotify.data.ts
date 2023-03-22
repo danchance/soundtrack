@@ -129,9 +129,10 @@ const spotifyApi = (() => {
   const getAlbumTracks = async (
     accessToken: string,
     albumId: string,
-    limit: number
+    limit: number,
+    offset: number
   ): Promise<AlbumTracks> => {
-    const endpoint = `albums/${albumId}/tracks?limit=${limit}`;
+    const endpoint = `albums/${albumId}/tracks?limit=${limit}&offset=${offset}`;
     return (await spotifyGet(endpoint, accessToken)) as AlbumTracks;
   };
 

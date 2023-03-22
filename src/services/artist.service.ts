@@ -46,8 +46,11 @@ const artistService = (() => {
         });
         // Add all the tracks
         await albumDb.bulkCreateAlbums(albums);
+        // NOTE: Timeout is needed to prevent rate limiting.
         spotifyAlbums.items.forEach(async (album) => {
-          await albumService.addAlbumTracks(album, accessToken);
+          setTimeout(async () => {
+            await albumService.addAlbumTracks(album, accessToken);
+          }, 100);
         });
         // If there are more results, loop back to request the next page
         page++;

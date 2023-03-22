@@ -22,16 +22,12 @@ const albumService = (() => {
    * TODO: update comments
    */
   const addAlbum = async (album: Album, accessToken: string) => {
-    // Check if the album already exists in the database
-    // const albums = await albumDb.getAlbums({ where: { id: album.id } });
-    // if (albums.count !== 0) return;
     // Check if artist exists before adding the album
     const artists = await artistDb.getArtists({
       where: { id: album.artists[0].id }
     });
     if (artists.count === 0) {
-      // Artist does not exist, call artist service to add the artist, their albums,
-      // and their tracks
+      // Artist does not exist, add the artist, all albums and tracks
       await artistService.addArtist(album.artists[0], accessToken);
     } else {
       // Artist exists, add the album and its tracks
@@ -47,27 +43,36 @@ const albumService = (() => {
         });
         await addAlbumTracks(album, accessToken);
       } catch (error) {
-        // If the album already exists, ignore the error
-        if (!(error instanceof UniqueConstraintError)) throw error;
+        if (!(error instanceof UniqueConstraintError)) {
+          throw error;
+        }
       }
     }
   };
 
   const addAlbumTracks = async (album: Album, accessToken: string) => {
-    const spotifyTracks = await spotifyApi.getAlbumTracks(
-      accessToken,
-      album.id,
-      50
-    );
-    const tracks = spotifyTracks.items.map((track) => {
-      return {
-        id: track.id,
-        name: track.name,
-        duration: track.duration_ms,
-        albumId: album.id
-      };
-    });
-    await trackDb.bulkCreateTracks(tracks);
+    let spotifyTracks;
+    let page = 0;
+    let pageSize = 50;
+    do {
+      spotifyTracks = await spotifyApi.getAlbumTracks(
+        accessToken,
+        album.id,
+        pageSize,
+        page * 50
+      );
+      const tracks = spotifyTracks.items.map((track) => {
+        return {
+          id: track.id,
+          name: track.name,
+          duration: track.duration_ms,
+          albumId: album.id
+        };
+      });
+      await trackDb.bulkCreateTracks(tracks);
+      page++;
+      // If there are more results, loop back to request the next page
+    } while (spotifyTracks.total > pageSize * page);
   };
 
   return { addAlbum, addAlbumTracks };
