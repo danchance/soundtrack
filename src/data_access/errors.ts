@@ -50,11 +50,12 @@ export class AccessTokenError extends Error {
  * Custom error class for when the app has exceeded its rate limit to an external API.
  */
 export class RateLimitError extends Error {
+  retryAfter: number;
   /**
    * Creates a new instance of RateLimitError.
    * @param params Additional parameters to pass ot the Error constructor.
    */
-  constructor(...params: Array<any>) {
+  constructor(retryAfter: number, ...params: Array<any>) {
     // Pass remaining arguments (including vendor specific ones) to parent constructor
     super(...params);
 
@@ -64,5 +65,6 @@ export class RateLimitError extends Error {
     }
 
     this.name = 'RateLimitError';
+    this.retryAfter = retryAfter;
   }
 }

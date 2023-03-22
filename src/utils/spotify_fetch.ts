@@ -34,11 +34,12 @@ export const spotifyGet = async <T>(endpoint: string, accessToken: string) => {
   } catch (error) {
     if (error instanceof Response) {
       const err = (await error.json()) as StandardError;
-      switch (err.error.status) {
+      switch (error.status) {
         case 401:
           throw new AccessTokenError(err.error.message);
         case 429:
-          throw new RateLimitError(err.error.message);
+          const retryAfter = parseInt(error.headers.get('Retry-After')!);
+          throw new RateLimitError(retryAfter, err.error.message);
         default:
           throw new Error(`Status ${err.error.status}: ${err.error.message}`);
       }
