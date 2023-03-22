@@ -8,38 +8,54 @@ import albumService from './album.service.js';
  * Hanldes all artist logic.
  */
 const artistService = (() => {
+  /**
+   * Adds an artist to the Artist table along with all their albums and tracks.
+   * @param artist Artist to add to the database.
+   * @param accessToken Spotify access token.
+   */
   const addArtist = async (artist: Artist, accessToken: string) => {
-    // // Check if the artist already exists in the database
-    // const artists = await artistDb.getArtists({ where: { id: artist.id } });
-    // if (artists.count !== 0) {
-    //   return;
-    // }
     try {
-      // Artist does not exist, add the artist
+      // Add the artist
       const spotifyArtist = await spotifyApi.getArtist(accessToken, artist.id);
       await artistDb.createArtist({
         id: spotifyArtist.id,
         name: spotifyArtist.name,
         image: spotifyArtist.images![0].url
       });
-      // Add all albums
-      const res = await spotifyApi.getArtistAlbums(accessToken, artist.id, 50);
-      for (const album of res.items) {
-        await albumDb.createAlbum({
-          id: album.id,
-          name: album.name,
-          type: album.album_type,
-          trackNum: album.total_tracks,
-          releaseYear: 2022,
-          artwork: album.images[0].url,
-          artistId: artist.id
+      let spotifyAlbums;
+      let page = 0;
+      let pageSize = 50;
+      do {
+        // Add all albums
+        spotifyAlbums = await spotifyApi.getArtistAlbums(
+          accessToken,
+          artist.id,
+          pageSize,
+          page * 50
+        );
+        const albums = spotifyAlbums.items.map((album) => {
+          return {
+            id: album.id,
+            name: album.name,
+            type: album.album_type,
+            trackNum: album.total_tracks,
+            releaseYear: 2022,
+            artwork: album.images[0].url,
+            artistId: artist.id
+          };
         });
-        await albumService.addAlbumTracks(album, accessToken);
-      }
-      // TODO: get next page of results if it exists
+        // Add all the tracks
+        await albumDb.bulkCreateAlbums(albums);
+        spotifyAlbums.items.forEach(async (album) => {
+          await albumService.addAlbumTracks(album, accessToken);
+        });
+        // If there are more results, loop back to request the next page
+        page++;
+      } while (spotifyAlbums.total > pageSize * page);
     } catch (error) {
-      // If the artist already exists, ignore the error
-      if (!(error instanceof UniqueConstraintError)) throw error;
+      if (!(error instanceof UniqueConstraintError)) {
+        throw error;
+      }
     }
   };
 

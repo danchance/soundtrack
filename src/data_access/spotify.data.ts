@@ -36,12 +36,12 @@ type RecentlyPlayedTracks = {
 };
 
 type AlbumTracks = {
-  next: null | string;
+  total: number;
   items: Array<Track>;
 };
 
 type ArtistAlbums = {
-  next: null | string;
+  total: number;
   items: Array<Album>;
 };
 
@@ -159,9 +159,10 @@ const spotifyApi = (() => {
   const getArtistAlbums = async (
     accessToken: string,
     artistId: string,
-    limit: number
+    limit: number,
+    offset: number
   ): Promise<ArtistAlbums> => {
-    const endpoint = `artists/${artistId}/albums?limit=${limit}`;
+    const endpoint = `artists/${artistId}/albums?limit=${limit}&offset=${offset}`;
     return (await spotifyGet(endpoint, accessToken)) as ArtistAlbums;
   };
 

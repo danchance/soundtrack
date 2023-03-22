@@ -54,12 +54,12 @@ const albumService = (() => {
   };
 
   const addAlbumTracks = async (album: Album, accessToken: string) => {
-    const albumTracks = await spotifyApi.getAlbumTracks(
+    const spotifyTracks = await spotifyApi.getAlbumTracks(
       accessToken,
       album.id,
       50
     );
-    const tracks = albumTracks.items.map((track) => {
+    const tracks = spotifyTracks.items.map((track) => {
       return {
         id: track.id,
         name: track.name,
