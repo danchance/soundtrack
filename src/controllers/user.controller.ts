@@ -36,7 +36,7 @@ export const getUserHistory = async (
         where: { username: req.params.user }
       })
     ).rows[0];
-    const recentlyPlayed = await userService.updateTrackHistory(user.id);
+    const recentlyPlayed = await userService.updateTrackHistory(user.id, 10);
     return res.json({ tracks: recentlyPlayed });
   } catch (error) {
     return next(error);

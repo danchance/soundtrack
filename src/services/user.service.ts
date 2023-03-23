@@ -67,11 +67,15 @@ const userService = (() => {
   };
 
   /**
-   * Requests the users streaming history from Spotify and updates the users
-   * streamed track history.
-   * @param userId Id of the user
+   * Updates the users streaming history using the Spotify API and returns
+   * the requested number of tracks last streamed.
+   * @param userId Id of the user.
+   * @param limit Number of tracks to return.
    */
-  const updateTrackHistory = async (userId: string): Promise<any> => {
+  const updateTrackHistory = async (
+    userId: string,
+    limit: number
+  ): Promise<any> => {
     const accessToken = await getSpotifyAccessToken(userId);
     // Find the last track that the user listened to, and use this timestamp
     // as a cursor to request new streamed tracks from Spotify.
@@ -87,14 +91,35 @@ const userService = (() => {
     });
     let res;
     if (lastPlay.count !== 0) {
-      // Add 1 second on to ensure Spotify does not include this item in
-      // the results.
+      // If the last track was played less than 30 seconds ago do not update stream history.
+      if (lastPlay.rows[0].playedAt > new Date(Date.now() - 30 * 1000)) {
+        return (
+          await userTrackHistoryDb.getUserTracks({
+            attributes: ['id', 'playedAt'],
+            where: {
+              userId: userId
+            },
+            order: [['playedAt', 'DESC']],
+            limit: limit,
+            include: [
+              {
+                model: models.track,
+                include: [
+                  { model: models.album, include: [{ model: models.artist }] }
+                ]
+              }
+            ]
+          })
+        ).rows;
+      }
+      // Add 1 second on to ensure Spotify doesn't include this item in the response.
       const after = lastPlay.rows[0].playedAt.getTime() + 1000;
       res = await spotifyApi.getRecentlyPlayed(accessToken, 20, after);
     } else {
       res = await spotifyApi.getRecentlyPlayed(accessToken, 20);
     }
-    let trackHistoryList: Array<IUserTrackHistory> = [];
+    // Add new tracks to database and update the users streaming history.
+    const trackHistoryList: Array<IUserTrackHistory> = [];
     const trackList: Array<Track> = [];
     res.items.forEach((item) => {
       trackHistoryList.push({
@@ -106,15 +131,14 @@ const userService = (() => {
     });
     await trackService.addTracks(trackList, accessToken);
     await userTrackHistoryDb.bulkCreateUserTracks(trackHistoryList);
-    // Return 10 last entries from database
-    trackHistoryList = (
+    return (
       await userTrackHistoryDb.getUserTracks({
         attributes: ['id', 'playedAt'],
         where: {
           userId: userId
         },
         order: [['playedAt', 'DESC']],
-        limit: 10,
+        limit: limit,
         include: [
           {
             model: models.track,
@@ -125,7 +149,6 @@ const userService = (() => {
         ]
       })
     ).rows;
-    return trackHistoryList;
   };
 
   return {
