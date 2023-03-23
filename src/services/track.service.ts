@@ -4,7 +4,7 @@ import trackDb from '../data_access/track.data.js';
 import albumService from './album.service.js';
 
 /**
- * Handles all track logic
+ * Handles all track logic.
  */
 const trackService = (() => {
   /**
@@ -20,7 +20,6 @@ const trackService = (() => {
       // Check if the track already exists in the database
       const res = await trackDb.getTracks({ where: { id: track.id } });
       if (res.count !== 0) continue;
-      console.log(track.name);
       // Track does not exist, check if the album exists in the database
       const albums = await albumDb.getAlbums({ where: { id: track.album.id } });
       if (albums.count === 0) {
@@ -32,19 +31,6 @@ const trackService = (() => {
         await albumService.addAlbumTracks(track.album, accessToken);
       }
     }
-    // // Get list of tracks to check if they exist in the database
-    // const trackIds = tracks.map((track) => track.id);
-    // console.log(trackIds);
-    // const knownTracks = (
-    //   await trackDb.getTracks({
-    //     where: { id: { [Op.or]: trackIds } }
-    //   })
-    // ).rows;
-    // // Get the difference between the tracks to add and the tracks that already exist
-    // const newTracks = tracks.filter((track) => {
-    //   return !knownTracks.find((knownTrack) => knownTrack.id === track.id);
-    // });
-    // console.log(newTracks);
   };
 
   return { addTracks };

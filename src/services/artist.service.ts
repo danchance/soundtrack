@@ -5,7 +5,7 @@ import spotifyApi, { Album, Artist } from '../data_access/spotify.data.js';
 import albumService from './album.service.js';
 
 /**
- * Hanldes all artist logic.
+ * Handles all artist logic.
  */
 const artistService = (() => {
   /**
@@ -30,6 +30,7 @@ const artistService = (() => {
         spotifyAlbums = await spotifyApi.getArtistAlbums(
           accessToken,
           artist.id,
+          ['album'],
           pageSize,
           page * 50
         );
@@ -46,11 +47,11 @@ const artistService = (() => {
         });
         // Add all the tracks
         await albumDb.bulkCreateAlbums(albums);
-        // NOTE: Timeout is needed to prevent rate limiting.
         spotifyAlbums.items.forEach(async (album) => {
-          setTimeout(async () => {
-            await albumService.addAlbumTracks(album, accessToken);
-          }, 100);
+          if (album.album_type === 'single') {
+            console.log('-------------SINGLE-------------');
+          }
+          await albumService.addAlbumTracks(album, accessToken);
         });
         // If there are more results, loop back to request the next page
         page++;

@@ -154,16 +154,19 @@ const spotifyApi = (() => {
    * Request all albums for an artist.
    * @param accessToken Access token provided by Spotify.
    * @param artistId Id of the artist.
+   * @param includeType Type of albums to include.
    * @param limit Maximum number of tracks to return.
+   * @param offset Offset of the first track to return.
    * @returns Spotify album objects.
    */
   const getArtistAlbums = async (
     accessToken: string,
     artistId: string,
+    includeType: Array<string>,
     limit: number,
     offset: number
   ): Promise<ArtistAlbums> => {
-    const endpoint = `artists/${artistId}/albums?limit=${limit}&offset=${offset}`;
+    const endpoint = `artists/${artistId}/albums?limit=${limit}&offset=${offset}&include_groups=${includeType.join()}`;
     return (await spotifyGet(endpoint, accessToken)) as ArtistAlbums;
   };
 

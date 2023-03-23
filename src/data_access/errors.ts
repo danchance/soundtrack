@@ -65,6 +65,7 @@ export class RateLimitError extends Error {
     }
 
     this.name = 'RateLimitError';
+    // Custom debugging information
     this.retryAfter = retryAfter;
   }
 }

@@ -17,6 +17,22 @@ type AuthenticationError = {
 };
 
 /**
+ * When Spotify returns a 429 status code, use the Retry-After header to determine
+ * how long to wait before retrying the request.
+ * If the current time is before the retryAfter time, wait until the retryAfter time
+ * has passed before sending the request.
+ */
+let retryAfter: Date | null = null;
+/**
+ * Maximum number of request attempts to make before giving up.
+ */
+const MAX_ATTEMPTS = 5;
+/**
+ * Track the number of requests made to Spotify API during the current session.
+ */
+let totalRequest = 0;
+
+/**
  * Spotify wrapper for all GET requests to https://api.spotify.com/v1.
  * Handles the regular Spotify Web API error format (StandardError).
  * @param endpoint Spotify request endpoint
@@ -24,28 +40,51 @@ type AuthenticationError = {
  * @returns Spotify JSON object for the requested resource.
  */
 export const spotifyGet = async <T>(endpoint: string, accessToken: string) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Total request: ', totalRequest);
+  }
   const url = `${config.spotify.apiUrl}/${endpoint}`;
-  try {
-    return await get<T>(url, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`
+  let requestAttemps = 0;
+  while (requestAttemps < MAX_ATTEMPTS) {
+    try {
+      // Wait if Spotify have rate limited us
+      if (retryAfter && retryAfter.getTime() - Date.now() > 0) {
+        await new Promise((resolve) => {
+          setTimeout(resolve, retryAfter!.getTime() - Date.now());
+        });
       }
-    });
-  } catch (error) {
-    if (error instanceof Response) {
-      const err = (await error.json()) as StandardError;
-      switch (error.status) {
-        case 401:
+      totalRequest++;
+      return await get<T>(url, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+    } catch (error) {
+      if (error instanceof Response) {
+        const err = (await error.json()) as StandardError;
+        if (error.status === 401) {
           throw new AccessTokenError(err.error.message);
-        case 429:
-          const retryAfter = parseInt(error.headers.get('Retry-After')!);
-          throw new RateLimitError(retryAfter, err.error.message);
-        default:
-          throw new Error(`Status ${err.error.status}: ${err.error.message}`);
+        } else if (error.status === 429) {
+          // Spotify rate limit exceeded.
+          const retrySeconds = parseInt(error.headers.get('Retry-After')!);
+          retryAfter = new Date(Date.now() + retrySeconds * 1000 + 500);
+          console.log(
+            'Rate limit exceeded, retrying in',
+            retrySeconds,
+            'seconds'
+          );
+        } else {
+          throw error;
+        }
+      } else {
+        throw error;
       }
     }
-    throw error;
+    // Loop back up to attempt the request again, this happens if we have been rate limited.
+    requestAttemps++;
   }
+  console.log('Max attempts reached');
+  throw new Error('Failed to get data from Spotify');
 };
 
 /**
