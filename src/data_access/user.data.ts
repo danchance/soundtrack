@@ -25,10 +25,7 @@ const userDb = (() => {
   const getUserById = async (userId: string): Promise<IUser> => {
     const user = await models.user.findByPk(userId);
     if (user === null) {
-      throw new RecordNotFoundError(
-        'User',
-        `User with ID ${userId} not found.`
-      );
+      throw new RecordNotFoundError('User', `User not found.`);
     }
     return user.toJSON();
   };

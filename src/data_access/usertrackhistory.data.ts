@@ -1,6 +1,6 @@
 import { IUserTrackHistory } from '../models/usertrackhistory.model.js';
 import { models } from '../models/_index.js';
-import { DestroyOptions, FindAndCountOptions } from 'sequelize';
+import { DestroyOptions, FindAndCountOptions, FindOptions } from 'sequelize';
 
 /**
  * Database functions used to manage all operations on UserTrack records.
@@ -47,6 +47,21 @@ const userTrackHistoryDb = (() => {
   };
 
   /**
+   * Retrieves UserTrack records for the query
+   * @param query Search query to execute.
+   * @returns The requested UserTrack records and record count.
+   */
+  const getUserTracks2 = async (
+    query: FindOptions<IUserTrackHistory>
+  ): Promise<Array<IUserTrackHistory>> => {
+    const userTracks = (await models.userTrackHistory.findAll({
+      ...query,
+      raw: true
+    })) as any;
+    return userTracks;
+  };
+
+  /**
    * Deletes all userTrack records that satisfy the query.
    * @param query Query to delete records.
    */
@@ -58,6 +73,7 @@ const userTrackHistoryDb = (() => {
     createUserTrack,
     bulkCreateUserTracks,
     getUserTracks,
+    getUserTracks2,
     deleteUserTracks
   };
 })();

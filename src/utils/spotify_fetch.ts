@@ -83,8 +83,7 @@ export const spotifyGet = async <T>(endpoint: string, accessToken: string) => {
     // Loop back up to attempt the request again, this happens if we have been rate limited.
     requestAttemps++;
   }
-  console.log('Max attempts reached');
-  throw new Error('Failed to get data from Spotify');
+  throw new RateLimitError('Spotify API rate limit exceeded.');
 };
 
 /**

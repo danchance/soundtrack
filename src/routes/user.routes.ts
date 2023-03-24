@@ -14,7 +14,7 @@ router.get('/:userid/discover', userController.getUserDiscover);
 
 router.get('/:userid/tracks', userController.getUserTracks);
 
-router.get('/:userid/albums', userController.getUserAlbums);
+router.get('/:user/albums', userController.getUserAlbums);
 
 router.get('/:userid/artists', userController.getUserArtists);
 

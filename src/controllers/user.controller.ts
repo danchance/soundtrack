@@ -1,4 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
+import {
+  AccessTokenError,
+  RecordNotFoundError
+} from '../data_access/errors.js';
 import userDb from '../data_access/user.data.js';
 import userService from '../services/user.service.js';
 
@@ -19,6 +23,7 @@ export const getUser = (req: Request, res: Response, next: NextFunction) => {
 
 /**
  * Controller for the users/:id/history endpoint.
+ * Returns the last 10 tracks the user streamed on Spotify.
  * @param req Express Request object
  * @param res Express Response object
  * @param next next middleware function
@@ -30,15 +35,28 @@ export const getUserHistory = async (
 ) => {
   try {
     // Query param contains username, get the userId
-    const user = (
-      await userDb.getUsers({
-        limit: 1,
-        where: { username: req.params.user }
-      })
-    ).rows[0];
+    const user = await userDb.getUser({
+      where: { username: req.params.user }
+    });
     const recentlyPlayed = await userService.updateTrackHistory(user.id, 10);
     return res.json({ tracks: recentlyPlayed });
   } catch (error) {
+    if (error instanceof RecordNotFoundError) {
+      return res.status(404).json({
+        error: {
+          status: 404,
+          message: error.message
+        }
+      });
+    }
+    if (error instanceof AccessTokenError) {
+      return res.status(401).json({
+        error: {
+          status: 401,
+          message: error.message
+        }
+      });
+    }
     return next(error);
   }
 };
@@ -99,18 +117,33 @@ export const getUserTracks = (
 
 /**
  * Controller for the users/:id/albums endpoint.
+ * Returns the users top 10 albums. Top albums are calculated by the number of
+ * times the user has listened to a track from the album.
  * @param req Express Request object
  * @param res Express Response object
  * @param next next middleware function
  */
-export const getUserAlbums = (
+export const getUserAlbums = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    return res.json({});
+    // Query param contains username, get the userId
+    const user = await userDb.getUser({
+      where: { username: req.params.user }
+    });
+    const topAlbums = await userService.getUserTopAlbums(user.id, 10);
+    return res.json({ albums: topAlbums });
   } catch (error) {
+    if (error instanceof RecordNotFoundError) {
+      return res.status(404).json({
+        error: {
+          status: 404,
+          message: error.message
+        }
+      });
+    }
     return next(error);
   }
 };

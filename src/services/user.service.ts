@@ -1,11 +1,14 @@
-import { Op } from 'sequelize';
-import { RecordNotFoundError } from '../data_access/errors.js';
+import { Op, QueryTypes, Sequelize } from 'sequelize';
+import {
+  AccessTokenError,
+  RecordNotFoundError
+} from '../data_access/errors.js';
 import spotifyApi, { Track } from '../data_access/spotify.data.js';
 import userDb from '../data_access/user.data.js';
 import userTrackHistoryDb from '../data_access/usertrackhistory.data.js';
 import { IUserTrackHistory } from '../models/usertrackhistory.model.js';
 import trackService from './track.service.js';
-import { models } from '../models/_index.js';
+import { models, sequelize } from '../models/_index.js';
 
 /**
  * Handles all user logic.
@@ -46,13 +49,13 @@ const userService = (() => {
       user.spotifyRefreshToken === undefined ||
       user.spotifyTokenExpires === undefined
     ) {
-      throw new Error('User must authenticate with Spotify');
+      throw new AccessTokenError('User must authenticate with Spotify');
     }
-    const currentDatetime = new Date(Date.now());
+    // Subtract 2 minutes from the current time to account for any latency.
+    const currentDatetime = new Date(Date.now() - 120 * 1000);
     if (user.spotifyTokenExpires > currentDatetime) {
       return user.spotifyAccessToken;
     }
-    // Request new access token and update the user record.
     const res = await spotifyApi.requestRefreshedAccessToken(
       user.spotifyRefreshToken
     );
@@ -151,9 +154,46 @@ const userService = (() => {
     ).rows;
   };
 
+  /**
+   * Calculates the users top albums based on their Spotify streaming history.
+   * A top album is calculated by totaling the number of times the tracks from an album
+   * have been streamed.
+   * @param userId Id of the user.
+   * @param limit Number of albums to return.
+   */
+  const getUserTopAlbums = async (userId: string, limit: number) => {
+    const topAlbums = await sequelize.query(
+      `
+      SELECT 
+        tracks.album_id, 
+        albums.name as album_name, 
+        albums.artwork, 
+        artists.name as artist_name,
+        COUNT(tracks.album_id) AS stream_count
+      FROM 
+        user_track_histories
+      LEFT JOIN 
+        tracks ON user_track_histories.track_id = tracks.id
+      LEFT JOIN 
+        albums ON tracks.album_id = albums.id
+      LEFT JOIN 
+        artists ON albums.artist_id = artists.id
+      WHERE user_id = :userId
+      GROUP BY tracks.album_id
+      ORDER BY stream_count DESC
+      LIMIT :limit;`,
+      {
+        replacements: { userId: userId, limit: limit },
+        type: QueryTypes.SELECT
+      }
+    );
+    return topAlbums;
+  };
+
   return {
     authenticateSpotifyUser,
-    updateTrackHistory
+    updateTrackHistory,
+    getUserTopAlbums
   };
 })();
 
