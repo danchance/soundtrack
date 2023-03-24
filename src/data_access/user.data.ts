@@ -1,4 +1,4 @@
-import { FindAndCountOptions } from 'sequelize';
+import { FindAndCountOptions, FindOptions } from 'sequelize';
 import { IUser } from '../models/user.model.js';
 import { models } from '../models/_index.js';
 import { RecordNotFoundError } from './errors.js';
@@ -29,6 +29,20 @@ const userDb = (() => {
         'User',
         `User with ID ${userId} not found.`
       );
+    }
+    return user.toJSON();
+  };
+
+  /**
+   * Retrieves a user record that matches the query.
+   * @param query Search query to execute.
+   * @returns The requested user record.
+   * @throws RecordNotFoundError if no user found.
+   */
+  const getUser = async (query: FindOptions<IUser>): Promise<IUser> => {
+    const user = await models.user.findOne(query);
+    if (user === null) {
+      throw new RecordNotFoundError('User', `User not found.`);
     }
     return user.toJSON();
   };
@@ -90,6 +104,7 @@ const userDb = (() => {
   return {
     createUser,
     getUserById,
+    getUser,
     getUsers,
     updateUser,
     deleteUser
