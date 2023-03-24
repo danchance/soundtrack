@@ -18,20 +18,17 @@ const albumService = (() => {
    * @param accessToken Spotify access token.
    */
   const addAlbum = async (album: Album, accessToken: string) => {
-    // Check if artist exists before adding the album
     const spotifyArtist = await artistDb.getArtists({
       where: { id: album.artists[0].id }
     });
     if (spotifyArtist.count === 0) {
       // Artist does not exist, add the artist, all albums and tracks
       await artistService.addArtist(album.artists[0], accessToken);
+      // addArtist does not add compilations or singles, so check if the album is a compilation or single.
+      if (album.album_type !== 'compilation' && album.album_type !== 'single') {
+        return;
+      }
     }
-    console.log(`-----------HERE----${album.album_type}-------`);
-    // addArtist does not add compilations or singles, so check if the album is a compilation or single.
-    if (album.album_type !== 'compilation' && album.album_type !== 'single') {
-      return;
-    }
-    // Artist exists, add the album and its tracks
     try {
       await albumDb.createAlbum({
         id: album.id,
@@ -78,7 +75,7 @@ const albumService = (() => {
       await trackDb.bulkCreateTracks(tracks);
       // If there are more results, loop back to request the next page.
       page++;
-    } while (!spotifyTracks || spotifyTracks.total > pageSize * page);
+    } while (spotifyTracks.total > pageSize * page);
   };
 
   return { addAlbum, addAlbumTracks };

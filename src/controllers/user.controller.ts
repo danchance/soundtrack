@@ -149,7 +149,7 @@ export const postUser = (req: Request, res: Response, next: NextFunction) => {
 };
 
 /**
- * Controller for the users/add endpoint.
+ * Controller for the users/spotify/auth endpoint.
  * @param req Express Request object
  * @param res Express Response object
  * @param next next middleware function

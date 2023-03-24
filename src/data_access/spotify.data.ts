@@ -124,6 +124,7 @@ const spotifyApi = (() => {
    * @param accessToken Access token provided by Spotify.
    * @param albumId Id of the album.
    * @param limit Maximum number of tracks to return.
+   * @param offset Offset of the first track to return.
    * @returns Spotify album object.
    */
   const getAlbumTracks = async (

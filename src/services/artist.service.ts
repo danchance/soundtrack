@@ -47,12 +47,9 @@ const artistService = (() => {
         });
         // Add all the tracks
         await albumDb.bulkCreateAlbums(albums);
-        spotifyAlbums.items.forEach(async (album) => {
-          if (album.album_type === 'single') {
-            console.log('-------------SINGLE-------------');
-          }
+        for (const album of spotifyAlbums.items) {
           await albumService.addAlbumTracks(album, accessToken);
-        });
+        }
         // If there are more results, loop back to request the next page
         page++;
       } while (spotifyAlbums.total > pageSize * page);

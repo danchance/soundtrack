@@ -20,11 +20,9 @@ const trackService = (() => {
       // Check if the track already exists in the database
       const res = await trackDb.getTracks({ where: { id: track.id } });
       if (res.count !== 0) continue;
-      // Track does not exist, check if the album exists in the database
       const albums = await albumDb.getAlbums({ where: { id: track.album.id } });
       if (albums.count === 0) {
-        // Album does not exist, call album service to add the album and all tracks
-        // on the album
+        // Album doesn't exist, add the album and all album tracks
         await albumService.addAlbum(track.album, accessToken);
       } else {
         // Album exists, update all tracks on the album

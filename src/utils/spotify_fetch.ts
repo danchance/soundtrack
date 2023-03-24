@@ -26,11 +26,11 @@ let retryAfter: Date | null = null;
 /**
  * Maximum number of request attempts to make before giving up.
  */
-const MAX_ATTEMPTS = 5;
+const MAX_ATTEMPTS: number = 5;
 /**
  * Track the number of requests made to Spotify API during the current session.
  */
-let totalRequest = 0;
+let totalRequest: number = 0;
 
 /**
  * Spotify wrapper for all GET requests to https://api.spotify.com/v1.
