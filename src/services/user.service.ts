@@ -155,6 +155,41 @@ const userService = (() => {
   };
 
   /**
+   * Calculates the users top tracks based on their Spotify streaming history.
+   * A top track is calculated by totaling the number of times the track has been streamed.
+   * @param userId Id of the user.
+   * @param limit Number of albums to return.
+   */
+  const getTopTracks = async (userId: string, limit: number) => {
+    const topTracks = await sequelize.query(
+      `
+        SELECT 
+          tracks.id, 
+          tracks.name as track_name, 
+          albums.artwork, 
+          artists.name as artist_name,
+          COUNT(tracks.id) AS stream_count
+        FROM 
+          user_track_histories
+        LEFT JOIN 
+          tracks ON user_track_histories.track_id = tracks.id
+        LEFT JOIN 
+          albums ON tracks.album_id = albums.id
+        LEFT JOIN 
+          artists ON albums.artist_id = artists.id
+        WHERE user_id = :user_id
+        GROUP BY tracks.id
+        ORDER BY stream_count DESC
+        LIMIT :limit;`,
+      {
+        replacements: { user_id: userId, limit: limit },
+        type: QueryTypes.SELECT
+      }
+    );
+    return topTracks;
+  };
+
+  /**
    * Calculates the users top albums based on their Spotify streaming history.
    * A top album is calculated by totaling the number of times the tracks from an album
    * have been streamed.
@@ -228,6 +263,7 @@ const userService = (() => {
   return {
     authenticateSpotifyUser,
     updateTrackHistory,
+    getTopTracks,
     getTopAlbums,
     getTopArtists
   };

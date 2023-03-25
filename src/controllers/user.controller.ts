@@ -99,18 +99,32 @@ export const getUserDiscover = (
 
 /**
  * Controller for the users/:id/tracks endpoint.
+ * Returns the users top 10 streamed tracks.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
  */
-export const getUserTracks = (
+export const getUserTracks = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    return res.json({});
+    // Query param contains username, get the userId
+    const user = await userDb.getUser({
+      where: { username: req.params.user }
+    });
+    const topTracks = await userService.getTopTracks(user.id, 10);
+    return res.json({ tracks: topTracks });
   } catch (error) {
+    if (error instanceof RecordNotFoundError) {
+      return res.status(404).json({
+        error: {
+          status: 404,
+          message: error.message
+        }
+      });
+    }
     return next(error);
   }
 };
