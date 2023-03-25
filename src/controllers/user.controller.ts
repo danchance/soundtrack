@@ -8,9 +8,9 @@ import userService from '../services/user.service.js';
 
 /**
  * Controller for the users/:id endpoint.
- * @param req Express Request object
- * @param res Express Response object
- * @param next next middleware function
+ * @param req Express Request object.
+ * @param res Express Response object.
+ * @param next next middleware function.
  */
 export const getUser = (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -24,9 +24,9 @@ export const getUser = (req: Request, res: Response, next: NextFunction) => {
 /**
  * Controller for the users/:id/history endpoint.
  * Returns the last 10 tracks the user streamed on Spotify.
- * @param req Express Request object
- * @param res Express Response object
- * @param next next middleware function
+ * @param req Express Request object.
+ * @param res Express Response object.
+ * @param next next middleware function.
  */
 export const getUserHistory = async (
   req: Request,
@@ -34,7 +34,7 @@ export const getUserHistory = async (
   next: NextFunction
 ) => {
   try {
-    // Query param contains username, get the userId
+    // Query param contains username, get the userId.
     const user = await userDb.getUser({
       where: { username: req.params.user }
     });
@@ -63,9 +63,9 @@ export const getUserHistory = async (
 
 /**
  * Controller for the users/:id/recap endpoint.
- * @param req Express Request object
- * @param res Express Response object
- * @param next next middleware function
+ * @param req Express Request object.
+ * @param res Express Response object.
+ * @param next next middleware function.
  */
 export const getUserRecap = (
   req: Request,
@@ -81,9 +81,9 @@ export const getUserRecap = (
 
 /**
  * Controller for the users/:id/discover endpoint.
- * @param req Express Request object
- * @param res Express Response object
- * @param next next middleware function
+ * @param req Express Request object.
+ * @param res Express Response object.
+ * @param next next middleware function.
  */
 export const getUserDiscover = (
   req: Request,
@@ -99,9 +99,9 @@ export const getUserDiscover = (
 
 /**
  * Controller for the users/:id/tracks endpoint.
- * @param req Express Request object
- * @param res Express Response object
- * @param next next middleware function
+ * @param req Express Request object.
+ * @param res Express Response object.
+ * @param next next middleware function.
  */
 export const getUserTracks = (
   req: Request,
@@ -117,11 +117,10 @@ export const getUserTracks = (
 
 /**
  * Controller for the users/:id/albums endpoint.
- * Returns the users top 10 albums. Top albums are calculated by the number of
- * times the user has listened to a track from the album.
- * @param req Express Request object
- * @param res Express Response object
- * @param next next middleware function
+ * Returns the users top 10 streamed albums.
+ * @param req Express Request object.
+ * @param res Express Response object.
+ * @param next next middleware function.
  */
 export const getUserAlbums = async (
   req: Request,
@@ -133,7 +132,7 @@ export const getUserAlbums = async (
     const user = await userDb.getUser({
       where: { username: req.params.user }
     });
-    const topAlbums = await userService.getUserTopAlbums(user.id, 10);
+    const topAlbums = await userService.getTopAlbums(user.id, 10);
     return res.json({ albums: topAlbums });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
@@ -150,27 +149,41 @@ export const getUserAlbums = async (
 
 /**
  * Controller for the users/:id/artists endpoint.
- * @param req Express Request object
- * @param res Express Response object
- * @param next next middleware function
+ * Returns the users top 10 streamed artists.
+ * @param req Express Request object.
+ * @param res Express Response object.
+ * @param next next middleware function.
  */
-export const getUserArtists = (
+export const getUserArtists = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    return res.json({});
+    // Query param contains username, get the userId
+    const user = await userDb.getUser({
+      where: { username: req.params.user }
+    });
+    const topArtists = await userService.getTopArtists(user.id, 10);
+    return res.json({ artists: topArtists });
   } catch (error) {
+    if (error instanceof RecordNotFoundError) {
+      return res.status(404).json({
+        error: {
+          status: 404,
+          message: error.message
+        }
+      });
+    }
     return next(error);
   }
 };
 
 /**
  * Controller for the users/add endpoint.
- * @param req Express Request object
- * @param res Express Response object
- * @param next next middleware function
+ * @param req Express Request object.
+ * @param res Express Response object.
+ * @param next next middleware function.
  */
 export const postUser = (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -183,9 +196,9 @@ export const postUser = (req: Request, res: Response, next: NextFunction) => {
 
 /**
  * Controller for the users/spotify/auth endpoint.
- * @param req Express Request object
- * @param res Express Response object
- * @param next next middleware function
+ * @param req Express Request object.
+ * @param res Express Response object.
+ * @param next next middleware function.
  */
 export const postSpotifyAuth = async (
   req: Request,

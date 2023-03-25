@@ -12,11 +12,11 @@ router.get('/:userid/recap', userController.getUserRecap);
 
 router.get('/:userid/discover', userController.getUserDiscover);
 
-router.get('/:userid/tracks', userController.getUserTracks);
+router.get('/:user/tracks', userController.getUserTracks);
 
 router.get('/:user/albums', userController.getUserAlbums);
 
-router.get('/:userid/artists', userController.getUserArtists);
+router.get('/:user/artists', userController.getUserArtists);
 
 router.post('/add', userController.postUser);
 

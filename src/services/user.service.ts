@@ -161,15 +161,15 @@ const userService = (() => {
    * @param userId Id of the user.
    * @param limit Number of albums to return.
    */
-  const getUserTopAlbums = async (userId: string, limit: number) => {
+  const getTopAlbums = async (userId: string, limit: number) => {
     const topAlbums = await sequelize.query(
       `
       SELECT 
-        tracks.album_id, 
+        albums.id, 
         albums.name as album_name, 
         albums.artwork, 
         artists.name as artist_name,
-        COUNT(tracks.album_id) AS stream_count
+        COUNT(albums.id) AS stream_count
       FROM 
         user_track_histories
       LEFT JOIN 
@@ -178,22 +178,58 @@ const userService = (() => {
         albums ON tracks.album_id = albums.id
       LEFT JOIN 
         artists ON albums.artist_id = artists.id
-      WHERE user_id = :userId
-      GROUP BY tracks.album_id
+      WHERE user_id = :user_id
+      GROUP BY albums.id
       ORDER BY stream_count DESC
       LIMIT :limit;`,
       {
-        replacements: { userId: userId, limit: limit },
+        replacements: { user_id: userId, limit: limit },
         type: QueryTypes.SELECT
       }
     );
     return topAlbums;
   };
 
+  /**
+   * Calculates the users top artists based on their Spotify streaming history.
+   * A top artist is calculated by totaling the number of times the tracks from an artist
+   * have been streamed.
+   * @param userId Id of the user.
+   * @param limit Number of artists to return.
+   */
+  const getTopArtists = async (userId: string, limit: number) => {
+    const topArtists = await sequelize.query(
+      `
+      SELECT 
+        artists.id,
+        artists.name as artist_name,
+        artists.image as artwork,        
+        COUNT(artists.id) AS stream_count
+      FROM 
+        user_track_histories
+      LEFT JOIN 
+        tracks ON user_track_histories.track_id = tracks.id
+      LEFT JOIN 
+        albums ON tracks.album_id = albums.id
+      LEFT JOIN 
+        artists ON albums.artist_id = artists.id
+      WHERE user_id = :user_id
+      GROUP BY artists.id
+      ORDER BY stream_count DESC
+      LIMIT :limit;`,
+      {
+        replacements: { user_id: userId, limit: limit },
+        type: QueryTypes.SELECT
+      }
+    );
+    return topArtists;
+  };
+
   return {
     authenticateSpotifyUser,
     updateTrackHistory,
-    getUserTopAlbums
+    getTopAlbums,
+    getTopArtists
   };
 })();
 
