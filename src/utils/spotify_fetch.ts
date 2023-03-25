@@ -37,6 +37,7 @@ let totalRequest: number = 0;
  * Handles the regular Spotify Web API error format (StandardError).
  * @param endpoint Spotify request endpoint
  * @param accessToken Access token provided by Spotify.
+ * @throws AccessTokenError, RateLimitError.
  * @returns Spotify JSON object for the requested resource.
  */
 export const spotifyGet = async <T>(endpoint: string, accessToken: string) => {
@@ -91,7 +92,8 @@ export const spotifyGet = async <T>(endpoint: string, accessToken: string) => {
  * Used to get the initial access token and future access tokens via the refresh token.
  * Handles the authentication Spotify Web API error format (AuthenticationError).
  * @param body Body of POST request.
- * @param init fetch settings object
+ * @param init fetch settings object.
+ * @throws AuthenticationError.
  * @returns Spotify JSON object for the requested resource.
  */
 export const spotifyPost = async <T>(

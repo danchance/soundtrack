@@ -1,5 +1,5 @@
 import albumDb from '../data_access/album.data.js';
-import { Track } from '../data_access/spotify.data.js';
+import { SpotifyTrack } from '../data_access/spotify.data.js';
 import trackDb from '../data_access/track.data.js';
 import albumService from './album.service.js';
 
@@ -15,7 +15,10 @@ const trackService = (() => {
    * @param tracks List of tracks to add to the track table.
    * @param accessToken Spotify access token.
    */
-  const addTracks = async (tracks: Array<Track>, accessToken: string) => {
+  const addTracks = async (
+    tracks: Array<SpotifyTrack>,
+    accessToken: string
+  ) => {
     for (const track of tracks) {
       // Check if the track already exists in the database
       const res = await trackDb.getTracks({ where: { id: track.id } });

@@ -1,7 +1,7 @@
 import { UniqueConstraintError } from 'sequelize';
 import albumDb from '../data_access/album.data.js';
 import artistDb from '../data_access/artist.data.js';
-import spotifyApi, { Album, Artist } from '../data_access/spotify.data.js';
+import spotifyApi, { SpotifyArtist } from '../data_access/spotify.data.js';
 import albumService from './album.service.js';
 
 /**
@@ -13,7 +13,7 @@ const artistService = (() => {
    * @param artist Artist to add to the database.
    * @param accessToken Spotify access token.
    */
-  const addArtist = async (artist: Artist, accessToken: string) => {
+  const addArtist = async (artist: SpotifyArtist, accessToken: string) => {
     try {
       // Add the artist
       const spotifyArtist = await spotifyApi.getArtist(accessToken, artist.id);

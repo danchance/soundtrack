@@ -1,9 +1,6 @@
-import { Op, QueryTypes, Sequelize } from 'sequelize';
-import {
-  AccessTokenError,
-  RecordNotFoundError
-} from '../data_access/errors.js';
-import spotifyApi, { Track } from '../data_access/spotify.data.js';
+import { QueryTypes } from 'sequelize';
+import { AccessTokenError } from '../data_access/errors.js';
+import spotifyApi, { SpotifyTrack } from '../data_access/spotify.data.js';
 import userDb from '../data_access/user.data.js';
 import userTrackHistoryDb from '../data_access/usertrackhistory.data.js';
 import { IUserTrackHistory } from '../models/usertrackhistory.model.js';
@@ -123,7 +120,7 @@ const userService = (() => {
     }
     // Add new tracks to database and update the users streaming history.
     const trackHistoryList: Array<IUserTrackHistory> = [];
-    const trackList: Array<Track> = [];
+    const trackList: Array<SpotifyTrack> = [];
     res.items.forEach((item) => {
       trackHistoryList.push({
         userId: userId,

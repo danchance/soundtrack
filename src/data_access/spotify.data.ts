@@ -1,50 +1,67 @@
 import config from '../config/general.config.js';
 import { spotifyGet, spotifyPost } from '../utils/spotify_fetch.js';
 
-type AuthenticationResponse = {
-  access_token: string;
-  expires_in: number;
-  refresh_token?: string;
-};
-
-export type Artist = {
+/**
+ * Define types for the Spotify API responses.
+ */
+export type SpotifyArtist = {
   id: string;
   name: string;
   images?: Array<{ height: number; url: string; width: number }>;
 };
 
-export type Album = {
+export type SpotifyAlbum = {
   id: string;
   name: string;
-  artists: Array<Artist>;
+  artists: Array<SpotifyArtist>;
   images: Array<{ height: number; url: string; width: number }>;
   album_type: any;
   total_tracks: number;
   release_date: string;
 };
 
-export type Track = {
+export type SpotifyTrack = {
   id: string;
   name: string;
   duration_ms: number;
-  album: Album;
-  artist: Array<Artist>;
+  album: SpotifyAlbum;
+  artists: Array<SpotifyArtist>;
 };
 
-type RecentlyPlayedTracks = {
-  items: Array<{ track: Track; played_at: string }>;
+type AccessTokenResponse = {
+  access_token: string;
+  expires_in: number;
+  refresh_token?: string;
 };
 
 type AlbumTracks = {
   total: number;
-  items: Array<Track>;
+  items: Array<SpotifyTrack>;
 };
 
 type ArtistAlbums = {
   total: number;
-  items: Array<Album>;
+  items: Array<SpotifyAlbum>;
 };
 
+type RecentTracks = {
+  items: Array<{
+    track: SpotifyTrack;
+    played_at: string;
+  }>;
+};
+
+type CurrentlyPlayingTrack = {
+  currently_playing_type: string;
+  is_playing: boolean;
+  timestamp: number;
+  progress_ms: number;
+  item: SpotifyTrack;
+};
+
+/**
+ * Handles all requests to the Spotify API.
+ */
 const spotifyApi = (() => {
   // Build request header for requesting access token.
   // Authorization header must be base64 encoded.
@@ -65,7 +82,7 @@ const spotifyApi = (() => {
   const requestAccessToken = async (
     code: string,
     redirectUri: string
-  ): Promise<AuthenticationResponse> => {
+  ): Promise<AccessTokenResponse> => {
     const endpoint = 'token';
     // Build POST body.
     const body = new URLSearchParams({
@@ -73,7 +90,7 @@ const spotifyApi = (() => {
       code: code,
       grant_type: 'authorization_code'
     });
-    return await spotifyPost<AuthenticationResponse>(endpoint, body, {
+    return await spotifyPost<AccessTokenResponse>(endpoint, body, {
       headers
     });
   };
@@ -85,14 +102,14 @@ const spotifyApi = (() => {
    */
   const requestRefreshedAccessToken = async (
     refreshToken: string
-  ): Promise<AuthenticationResponse> => {
+  ): Promise<AccessTokenResponse> => {
     const endpoint = 'token';
     // Build POST body.
     const body = new URLSearchParams({
       grant_type: 'refresh_token',
       refresh_token: refreshToken
     });
-    return await spotifyPost<AuthenticationResponse>(endpoint, body, {
+    return await spotifyPost<AccessTokenResponse>(endpoint, body, {
       headers
     });
   };
@@ -103,9 +120,12 @@ const spotifyApi = (() => {
    * @param trackId Id of the track.
    * @returns Spotify track object.
    */
-  const getTrack = async (accessToken: string, trackId: string) => {
+  const getTrack = async (
+    accessToken: string,
+    trackId: string
+  ): Promise<SpotifyTrack> => {
     const endpoint = `tracks/${trackId}`;
-    return await spotifyGet(endpoint, accessToken);
+    return (await spotifyGet(endpoint, accessToken)) as SpotifyTrack;
   };
 
   /**
@@ -114,9 +134,12 @@ const spotifyApi = (() => {
    * @param albumId Id of the album.
    * @returns Spotify album object.
    */
-  const getAlbum = async (accessToken: string, albumId: string) => {
+  const getAlbum = async (
+    accessToken: string,
+    albumId: string
+  ): Promise<SpotifyAlbum> => {
     const endpoint = `albums/${albumId}`;
-    return await spotifyGet(endpoint, accessToken);
+    return (await spotifyGet(endpoint, accessToken)) as SpotifyAlbum;
   };
 
   /**
@@ -146,9 +169,9 @@ const spotifyApi = (() => {
   const getArtist = async (
     accessToken: string,
     artistId: string
-  ): Promise<Artist> => {
+  ): Promise<SpotifyArtist> => {
     const endpoint = `artists/${artistId}`;
-    return (await spotifyGet(endpoint, accessToken)) as Artist;
+    return (await spotifyGet(endpoint, accessToken)) as SpotifyArtist;
   };
 
   /**
@@ -177,9 +200,12 @@ const spotifyApi = (() => {
    * @param artistId Id of the artist.
    * @returns Spotify track objects.
    */
-  const getArtistTopTracks = async (accessToken: string, artistId: string) => {
+  const getArtistTopTracks = async (
+    accessToken: string,
+    artistId: string
+  ): Promise<Array<SpotifyTrack>> => {
     const endpoint = `artists/${artistId}/top-tracks`;
-    return await spotifyGet(endpoint, accessToken);
+    return (await spotifyGet(endpoint, accessToken)) as Array<SpotifyTrack>;
   };
 
   /**
@@ -193,12 +219,12 @@ const spotifyApi = (() => {
     accessToken: string,
     limit: number,
     after?: number
-  ): Promise<RecentlyPlayedTracks> => {
+  ): Promise<RecentTracks> => {
     let endpoint = `me/player/recently-played?limit=${limit}`;
     if (typeof after !== 'undefined') {
       endpoint = `${endpoint}&after=${after}`;
     }
-    return (await spotifyGet(endpoint, accessToken)) as RecentlyPlayedTracks;
+    return (await spotifyGet(endpoint, accessToken)) as RecentTracks;
   };
 
   /**
@@ -206,9 +232,11 @@ const spotifyApi = (() => {
    * @param accessToken Access token provided by Spotify.
    * @returns Spotify track object
    */
-  const getCurrentlyPlayingTrack = async (accessToken: string) => {
-    const endpoint = `me/player/currently-playing`;
-    return await spotifyGet(endpoint, accessToken);
+  const getCurrentlyPlayingTrack = async (
+    accessToken: string
+  ): Promise<CurrentlyPlayingTrack> => {
+    const endpoint = `me/player/currently-playing?additional_types=track`;
+    return (await spotifyGet(endpoint, accessToken)) as CurrentlyPlayingTrack;
   };
 
   return {

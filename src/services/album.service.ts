@@ -2,7 +2,7 @@ import { UniqueConstraintError } from 'sequelize';
 import albumDb from '../data_access/album.data.js';
 import artistDb from '../data_access/artist.data.js';
 import { RateLimitError } from '../data_access/errors.js';
-import spotifyApi, { Album } from '../data_access/spotify.data.js';
+import spotifyApi, { SpotifyAlbum } from '../data_access/spotify.data.js';
 import trackDb from '../data_access/track.data.js';
 import artistService from './artist.service.js';
 
@@ -17,7 +17,7 @@ const albumService = (() => {
    * @param album The album to add to the database.
    * @param accessToken Spotify access token.
    */
-  const addAlbum = async (album: Album, accessToken: string) => {
+  const addAlbum = async (album: SpotifyAlbum, accessToken: string) => {
     const spotifyArtist = await artistDb.getArtists({
       where: { id: album.artists[0].id }
     });
@@ -52,7 +52,7 @@ const albumService = (() => {
    * @param album Album to add tracks to the database.
    * @param accessToken Spotify access token.
    */
-  const addAlbumTracks = async (album: Album, accessToken: string) => {
+  const addAlbumTracks = async (album: SpotifyAlbum, accessToken: string) => {
     let spotifyTracks;
     let page = 0;
     let pageSize = 50;
