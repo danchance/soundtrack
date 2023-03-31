@@ -4,17 +4,24 @@ import checkJwt from '../middleware/auth.js';
 
 const router: Router = Router();
 
-/**
- * Test protecting this route
- */
-router.get('/:id', checkJwt, userController.getUser);
+router.get('/:user', userController.getUser);
 
-router.get('/:id/tracks/history', userController.getUserHistory);
+router.get('/:user/profile', userController.getUserProfile);
 
-router.get('/:id/tracks/top', userController.getUserTracksTop);
+router.get('/:user/history', userController.getUserHistory);
 
-router.get('/:id/albums/top', userController.getUserAlbumsTop);
+router.get('/:userid/recap', userController.getUserRecap);
 
-router.get('/:id/artists/top', userController.getUserArtistsTop);
+router.get('/:userid/discover', userController.getUserDiscover);
+
+router.get('/:user/tracks', userController.getUserTracks);
+
+router.get('/:user/albums', userController.getUserAlbums);
+
+router.get('/:user/artists', userController.getUserArtists);
+
+router.post('/add', userController.postUser);
+
+router.post('/spotify/auth', checkJwt, userController.postSpotifyAuth);
 
 export default router;

@@ -11,7 +11,7 @@ import {
  */
 export interface IUserTrackHistory {
   id?: number;
-  userId: ForeignKey<number>;
+  userId: ForeignKey<string>;
   trackId: ForeignKey<string>;
   playedAt: Date;
 }

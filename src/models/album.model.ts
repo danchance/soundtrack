@@ -5,7 +5,7 @@ import { Sequelize, DataTypes, ModelDefined, Model } from 'sequelize';
  */
 export enum AlbumType {
   ALBUM = 'album',
-  COMPILATION = 'compliation',
+  COMPILATION = 'compilation',
   SINGLE = 'single'
 }
 
@@ -19,6 +19,7 @@ export interface IAlbum {
   trackNum: number;
   releaseYear: number;
   artwork: string;
+  artistId?: string;
 }
 
 /**
@@ -69,6 +70,14 @@ export default (
       artwork: {
         type: DataTypes.STRING,
         allowNull: false
+      },
+      artistId: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        references: {
+          model: 'artists',
+          key: 'id'
+        }
       }
     },
     {

@@ -23,7 +23,8 @@ const albumDb = (() => {
    */
   const bulkCreateAlbums = async (albums: Array<IAlbum>) => {
     return await models.album.bulkCreate(albums, {
-      validate: true
+      validate: true,
+      ignoreDuplicates: true
     });
   };
 

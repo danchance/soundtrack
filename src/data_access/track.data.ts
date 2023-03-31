@@ -8,7 +8,9 @@ import { RecordNotFoundError } from './errors.js';
  */
 const trackDb = (() => {
   /**
-   * Adds a new Track record to the Track table.
+   * Adds a new Track record to the Track table. Note: adding tracks should be done
+   * using the addTracks function in the trackService to ensure foreign key contraints
+   * are not violated (album and artist exist).
    * @param track The track to create.
    * @returns The new track record.
    */
@@ -17,13 +19,16 @@ const trackDb = (() => {
   };
 
   /**
-   * Adds multiple Track records to the Track table.
+   * Adds multiple Track records to the Track table. Note: adding tracks should be done
+   * using the addTracks function in the trackService to ensure foreign key contraints
+   * are not violated (album and artist exist).
    * @param tracks Array of tracks to create.
    * @returns
    */
   const bulkCreateTracks = async (tracks: Array<ITrack>) => {
     return await models.track.bulkCreate(tracks, {
-      validate: true
+      validate: true,
+      ignoreDuplicates: true
     });
   };
 
@@ -49,7 +54,6 @@ const trackDb = (() => {
    * match the query.
    * @param query Search query to execute.
    * @returns The requested track records and record count.
-   * @throws RecordNotFoundError if no track records exist.
    */
   const getTracks = async (
     query: FindAndCountOptions<ITrack>
@@ -59,12 +63,6 @@ const trackDb = (() => {
       raw: true,
       nest: true
     })) as any;
-    if (tracks === null) {
-      throw new RecordNotFoundError(
-        'Track',
-        `No tracks for query: ${query}  found`
-      );
-    }
     return tracks;
   };
 

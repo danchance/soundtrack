@@ -1,3 +1,4 @@
+import { FindAndCountOptions, FindOptions } from 'sequelize';
 import { IUser } from '../models/user.model.js';
 import { models } from '../models/_index.js';
 import { RecordNotFoundError } from './errors.js';
@@ -24,12 +25,40 @@ const userDb = (() => {
   const getUserById = async (userId: string): Promise<IUser> => {
     const user = await models.user.findByPk(userId);
     if (user === null) {
-      throw new RecordNotFoundError(
-        'User',
-        `User with ID ${userId} not found.`
-      );
+      throw new RecordNotFoundError('User', `User not found.`);
     }
     return user.toJSON();
+  };
+
+  /**
+   * Retrieves a user record that matches the query.
+   * @param query Search query to execute.
+   * @returns The requested user record.
+   * @throws RecordNotFoundError if no user found.
+   */
+  const getUser = async (query: FindOptions<IUser>): Promise<IUser> => {
+    const user = await models.user.findOne(query);
+    if (user === null) {
+      throw new RecordNotFoundError('User', `User not found.`);
+    }
+    return user.toJSON();
+  };
+
+  /**
+   * Retrieves User records for the query and the number of records that
+   * match the query.
+   * @param query Search query to execute.
+   * @returns The requested User records and record count.
+   */
+  const getUsers = async (
+    query: FindAndCountOptions<IUser>
+  ): Promise<{ count: number; rows: Array<IUser> }> => {
+    const users = (await models.user.findAndCountAll({
+      ...query,
+      raw: true,
+      nest: true
+    })) as any;
+    return users;
   };
 
   /**
@@ -72,6 +101,8 @@ const userDb = (() => {
   return {
     createUser,
     getUserById,
+    getUser,
+    getUsers,
     updateUser,
     deleteUser
   };

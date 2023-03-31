@@ -23,7 +23,8 @@ const genreDb = (() => {
    */
   const bulkCreateGenres = async (genres: Array<IGenre>) => {
     return await models.genre.bulkCreate(genres, {
-      validate: true
+      validate: true,
+      ignoreDuplicates: true
     });
   };
 

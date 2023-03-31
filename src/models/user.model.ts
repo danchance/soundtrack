@@ -4,11 +4,13 @@ import { Sequelize, DataTypes, ModelDefined, Model } from 'sequelize';
  * Define interface for User attributes.
  */
 export interface IUser {
-  id: number;
+  id: string;
   username: string;
+  image: string;
   spotifyAccessToken?: string;
   spotifyRefreshToken?: string;
   spotifyTokenExpires?: Date;
+  createdAt?: Date;
 }
 
 /**
@@ -27,12 +29,15 @@ export default (
     {
       id: {
         primaryKey: true,
-        autoIncrement: true,
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
       },
       username: {
         type: DataTypes.STRING,
         unique: true,
+        allowNull: false
+      },
+      image: {
+        type: DataTypes.STRING,
         allowNull: false
       },
       spotifyAccessToken: DataTypes.STRING,

@@ -23,7 +23,8 @@ const artistDb = (() => {
    */
   const bulkCreateArtists = async (artists: Array<IArtist>) => {
     return await models.artist.bulkCreate(artists, {
-      validate: true
+      validate: true,
+      ignoreDuplicates: true
     });
   };
 
@@ -49,7 +50,6 @@ const artistDb = (() => {
    * match the query.
    * @param query Search query to execute.
    * @returns The requested artist records and record count.
-   * @throws RecordNotFoundError if no artist records exist.
    */
   const getArtists = async (
     query: FindAndCountOptions<IArtist>
@@ -59,12 +59,6 @@ const artistDb = (() => {
       raw: true,
       nest: true
     })) as any;
-    if (artists === null) {
-      throw new RecordNotFoundError(
-        'Artist',
-        `No Artist for query: ${query}  found`
-      );
-    }
     return artists;
   };
 
