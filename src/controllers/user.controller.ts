@@ -8,15 +8,89 @@ import userService from '../services/user.service.js';
 
 /**
  * Controller for the users/:id endpoint.
+ * Gets user information for the requested username.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
  */
-export const getUser = (req: Request, res: Response, next: NextFunction) => {
+export const getUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    console.log(req.user);
-    return res.json({ user: { email: 'user@email.com' } });
+    const user = await userDb.getUser({
+      where: { username: req.params.user }
+    });
+    return res.json({
+      user: {
+        id: user.id,
+        username: user.username,
+        image: user.image,
+        createdAt: user.createdAt
+      }
+    });
   } catch (error) {
+    if (error instanceof RecordNotFoundError) {
+      return res.status(404).json({
+        error: {
+          status: 404,
+          message: error.message
+        }
+      });
+    }
+    return next(error);
+  }
+};
+
+/**
+ * Controller for the users/:id/profile endpoint.
+ * Returns all data displayed on the users profile page.
+ *  - Last 10 tracks the user streamed on Spotify.
+ *  - Top 10 streamed tracks.
+ *  - Top 10 streamed artists.
+ *  - Top 10 streamed albums.
+ * @param req Express Request object.
+ * @param res Express Response object.
+ * @param next next middleware function.
+ */
+export const getUserProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // Query param contains username, get the userId.
+    const user = await userDb.getUser({
+      where: { username: req.params.user }
+    });
+    const recentlyPlayed = await userService.updateTrackHistory(user.id, 10);
+    const topTracks = await userService.getTopTracks(user.id, 10);
+    const topAlbums = await userService.getTopAlbums(user.id, 10);
+    const topArtists = await userService.getTopArtists(user.id, 10);
+    return res.json({
+      recentTracks: recentlyPlayed,
+      tracks: topTracks,
+      albums: topAlbums,
+      artists: topArtists
+    });
+  } catch (error) {
+    if (error instanceof RecordNotFoundError) {
+      return res.status(404).json({
+        error: {
+          status: 404,
+          message: error.message
+        }
+      });
+    }
+    if (error instanceof AccessTokenError) {
+      return res.status(401).json({
+        error: {
+          status: 401,
+          message: error.message
+        }
+      });
+    }
     return next(error);
   }
 };

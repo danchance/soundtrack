@@ -6,9 +6,11 @@ import { Sequelize, DataTypes, ModelDefined, Model } from 'sequelize';
 export interface IUser {
   id: string;
   username: string;
+  image: string;
   spotifyAccessToken?: string;
   spotifyRefreshToken?: string;
   spotifyTokenExpires?: Date;
+  createdAt?: Date;
 }
 
 /**
@@ -32,6 +34,10 @@ export default (
       username: {
         type: DataTypes.STRING,
         unique: true,
+        allowNull: false
+      },
+      image: {
+        type: DataTypes.STRING,
         allowNull: false
       },
       spotifyAccessToken: DataTypes.STRING,

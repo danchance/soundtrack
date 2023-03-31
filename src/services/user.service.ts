@@ -8,6 +8,18 @@ import trackService from './track.service.js';
 import { models, sequelize } from '../models/_index.js';
 
 /**
+ * Type used to represent a users top tracks, albums or artists.
+ */
+type TopItems = Array<{
+  id: string;
+  artistName: string;
+  artwork: string;
+  count: number;
+  trackName?: string;
+  albumName?: string;
+}>;
+
+/**
  * Handles all user logic.
  */
 const userService = (() => {
@@ -75,7 +87,7 @@ const userService = (() => {
   const updateTrackHistory = async (
     userId: string,
     limit: number
-  ): Promise<any> => {
+  ): Promise<Array<IUserTrackHistory>> => {
     const accessToken = await getSpotifyAccessToken(userId);
     // Find the last track that the user listened to, and use this timestamp
     // as a cursor to request new streamed tracks from Spotify.
@@ -157,15 +169,18 @@ const userService = (() => {
    * @param userId Id of the user.
    * @param limit Number of albums to return.
    */
-  const getTopTracks = async (userId: string, limit: number) => {
-    const topTracks = await sequelize.query(
+  const getTopTracks = async (
+    userId: string,
+    limit: number
+  ): Promise<TopItems> => {
+    const topTracks: TopItems = await sequelize.query(
       `
         SELECT 
           tracks.id, 
-          tracks.name as track_name, 
+          tracks.name as trackName, 
           albums.artwork, 
-          artists.name as artist_name,
-          COUNT(tracks.id) AS stream_count
+          artists.name as artistName,
+          COUNT(tracks.id) AS count
         FROM 
           user_track_histories
         LEFT JOIN 
@@ -176,13 +191,14 @@ const userService = (() => {
           artists ON albums.artist_id = artists.id
         WHERE user_id = :user_id
         GROUP BY tracks.id
-        ORDER BY stream_count DESC
+        ORDER BY count DESC
         LIMIT :limit;`,
       {
         replacements: { user_id: userId, limit: limit },
         type: QueryTypes.SELECT
       }
     );
+    console.log(topTracks);
     return topTracks;
   };
 
@@ -193,15 +209,18 @@ const userService = (() => {
    * @param userId Id of the user.
    * @param limit Number of albums to return.
    */
-  const getTopAlbums = async (userId: string, limit: number) => {
-    const topAlbums = await sequelize.query(
+  const getTopAlbums = async (
+    userId: string,
+    limit: number
+  ): Promise<TopItems> => {
+    const topAlbums: TopItems = await sequelize.query(
       `
       SELECT 
         albums.id, 
-        albums.name as album_name, 
+        albums.name as albumName, 
         albums.artwork, 
-        artists.name as artist_name,
-        COUNT(albums.id) AS stream_count
+        artists.name as artistName,
+        COUNT(albums.id) AS count
       FROM 
         user_track_histories
       LEFT JOIN 
@@ -212,7 +231,7 @@ const userService = (() => {
         artists ON albums.artist_id = artists.id
       WHERE user_id = :user_id
       GROUP BY albums.id
-      ORDER BY stream_count DESC
+      ORDER BY count DESC
       LIMIT :limit;`,
       {
         replacements: { user_id: userId, limit: limit },
@@ -229,14 +248,17 @@ const userService = (() => {
    * @param userId Id of the user.
    * @param limit Number of artists to return.
    */
-  const getTopArtists = async (userId: string, limit: number) => {
-    const topArtists = await sequelize.query(
+  const getTopArtists = async (
+    userId: string,
+    limit: number
+  ): Promise<TopItems> => {
+    const topArtists: TopItems = await sequelize.query(
       `
       SELECT 
         artists.id,
-        artists.name as artist_name,
+        artists.name as artistName,
         artists.image as artwork,        
-        COUNT(artists.id) AS stream_count
+        COUNT(artists.id) AS count
       FROM 
         user_track_histories
       LEFT JOIN 
@@ -247,7 +269,7 @@ const userService = (() => {
         artists ON albums.artist_id = artists.id
       WHERE user_id = :user_id
       GROUP BY artists.id
-      ORDER BY stream_count DESC
+      ORDER BY count DESC
       LIMIT :limit;`,
       {
         replacements: { user_id: userId, limit: limit },

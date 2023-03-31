@@ -17,7 +17,7 @@ const app: Express = express();
 /**
  * Mount middleware used to serve static files.
  */
-const root = dirname(fileURLToPath(import.meta.url));
+const root = dirname(fileURLToPath(import.meta.url)).slice(0, -5);
 app.use(express.static(join(root, 'public')));
 
 /**
@@ -42,7 +42,12 @@ if (process.env.NODE_ENV === 'development') {
   app.use(async (req: Request, res: Response, next: NextFunction) => {
     if (req.user === undefined) return next();
     try {
-      await userDb.createUser({ id: req.user.id, username: req.user.username });
+      await userDb.createUser({
+        id: req.user.id,
+        username: req.user.username,
+        image:
+          'http://localhost:8000/images/profiles/auth06416f24fd7a5ed86bc312ac7.jpg'
+      });
     } catch (error) {
       // Catch and ignore all errors in this situation.
       // UniqueContraintError usually thrown.

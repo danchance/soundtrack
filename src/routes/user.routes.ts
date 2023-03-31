@@ -4,7 +4,9 @@ import checkJwt from '../middleware/auth.js';
 
 const router: Router = Router();
 
-router.get('/:userid', userController.getUser);
+router.get('/:user', userController.getUser);
+
+router.get('/:user/profile', userController.getUserProfile);
 
 router.get('/:user/history', userController.getUserHistory);
 

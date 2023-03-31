@@ -42,7 +42,7 @@ let totalRequest: number = 0;
  */
 export const spotifyGet = async <T>(endpoint: string, accessToken: string) => {
   if (process.env.NODE_ENV === 'development') {
-    console.log('Total request: ', totalRequest);
+    console.log('Total requests: ', totalRequest);
   }
   const url = `${config.spotify.apiUrl}/${endpoint}`;
   let requestAttemps = 0;
@@ -66,7 +66,8 @@ export const spotifyGet = async <T>(endpoint: string, accessToken: string) => {
         if (error.status === 401) {
           throw new AccessTokenError(err.error.message);
         } else if (error.status === 429) {
-          // Spotify rate limit exceeded.
+          // Spotify rate limit exceeded, add 0.5s on as Spotify give us a
+          // rounded time in seconds.
           const retrySeconds = parseInt(error.headers.get('Retry-After')!);
           retryAfter = new Date(Date.now() + retrySeconds * 1000 + 500);
           console.log(
