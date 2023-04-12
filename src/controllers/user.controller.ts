@@ -283,12 +283,18 @@ export const getUserCurrentTrack = async (
   next: NextFunction
 ) => {
   try {
-    console.log('get user current track');
-    const currentTrack = await userService.getCurrentlyPlayingTrack(
-      req.params.userid
-    );
+    const userid = req.params.userid;
+    const currentTrack = await userService.getCurrentlyPlayingTrack(userid);
     return res.json({ track: currentTrack });
   } catch (error) {
+    if (error instanceof AccessTokenError) {
+      return res.status(401).json({
+        error: {
+          status: 401,
+          message: error.message
+        }
+      });
+    }
     return next(error);
   }
 };
