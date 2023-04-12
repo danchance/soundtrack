@@ -54,7 +54,6 @@ type RecentTracks = {
 type CurrentlyPlayingTrack = {
   currently_playing_type: string;
   is_playing: boolean;
-  timestamp: number;
   progress_ms: number;
   item: SpotifyTrack;
 };

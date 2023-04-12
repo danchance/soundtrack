@@ -20,6 +20,8 @@ router.get('/:user/albums', userController.getUserAlbums);
 
 router.get('/:user/artists', userController.getUserArtists);
 
+router.get('/:userid/current-track', userController.getUserCurrentTrack);
+
 router.post('/add', userController.postUser);
 
 router.post('/spotify/auth', checkJwt, userController.postSpotifyAuth);

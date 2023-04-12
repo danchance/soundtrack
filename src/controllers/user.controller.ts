@@ -268,6 +268,32 @@ export const getUserArtists = async (
 };
 
 /**
+ * Controller for the users/userid/current-track endpoint.
+ * Returns the current track the user is listening to on Spotify.
+ * If the user is not currently streaming a track the last streamed
+ * track is returned, with a flag indicating it is not being streamed
+ * currently.
+ * @param req Express Request object.
+ * @param res Express Response object.
+ * @param next next middleware function.
+ */
+export const getUserCurrentTrack = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    console.log('get user current track');
+    const currentTrack = await userService.getCurrentlyPlayingTrack(
+      req.params.userid
+    );
+    return res.json({ track: currentTrack });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+/**
  * Controller for the users/add endpoint.
  * @param req Express Request object.
  * @param res Express Response object.
