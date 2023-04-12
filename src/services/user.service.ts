@@ -54,9 +54,9 @@ const userService = (() => {
   const getSpotifyAccessToken = async (userId: string): Promise<string> => {
     const user = await userDb.getUserById(userId);
     if (
-      user.spotifyAccessToken === undefined ||
-      user.spotifyRefreshToken === undefined ||
-      user.spotifyTokenExpires === undefined
+      !user.spotifyAccessToken ||
+      !user.spotifyRefreshToken ||
+      !user.spotifyTokenExpires
     ) {
       throw new AccessTokenError('User must authenticate with Spotify');
     }
@@ -279,12 +279,33 @@ const userService = (() => {
     return topArtists;
   };
 
+  /**
+   * Fetches the currently playing track for a user.
+   * @param userId Id of the user.
+   * @returns Currently playing track object or null if no track is playing.
+   */
+  const getCurrentlyPlayingTrack = async (userId: string) => {
+    const accessToken = await getSpotifyAccessToken(userId);
+    const res = await spotifyApi.getCurrentlyPlayingTrack(accessToken);
+    if (res.currently_playing_type === 'track' && res.item) {
+      return {
+        name: res.item.name,
+        progress: res.progress_ms,
+        duration: res.item.duration_ms,
+        artwork: res.item.album.images[0].url,
+        playingNow: res.is_playing
+      };
+    }
+    return null;
+  };
+
   return {
     authenticateSpotifyUser,
     updateTrackHistory,
     getTopTracks,
     getTopAlbums,
-    getTopArtists
+    getTopArtists,
+    getCurrentlyPlayingTrack
   };
 })();
 
