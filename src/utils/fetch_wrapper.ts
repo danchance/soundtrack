@@ -7,18 +7,11 @@ import fetch, { BodyInit, RequestInfo, RequestInit } from 'node-fetch';
  * @returns JSON response of type T.
  */
 const fetcher = async <T>(url: RequestInfo, options?: RequestInit) => {
-  try {
-    const response = await fetch(url, options);
-    if (!response.ok) {
-      return Promise.reject(response);
-    }
-    return response.json().catch(() => ({})) as Promise<T>;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(`Something went wrong: ${error.message}`);
-    }
-    throw new Error(`Something went wrong: ${error}`);
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    return Promise.reject(response);
   }
+  return response.json().catch(() => ({})) as Promise<T>;
 };
 
 /**
