@@ -33,6 +33,22 @@ export const get = async <T>(url: string, config?: RequestInit) => {
 };
 
 /**
+ * Sends a PATCH request to the specified resource.
+ * @param url Path of resource.
+ * @param body Body of PATCH request.
+ * @param config fetch settings.
+ * @returns JSON response of type T.
+ */
+export const patch = async <T>(
+  url: string,
+  body: BodyInit,
+  config?: RequestInit
+) => {
+  const init = { method: 'PATCH', ...config, body };
+  return await fetcher<T>(url, init);
+};
+
+/**
  * Sends a POST request to the specified resource.
  * @param url Path of resource.
  * @param body Body of POST request.
