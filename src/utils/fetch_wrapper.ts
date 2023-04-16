@@ -60,9 +60,8 @@ export const post = async <T>(
 /**
  * Sends a DELETE request to the specified resource.
  * @param url Path of resource.
- * @param body Body of POST request.
  * @param config fetch settings.
- * @returns JSON response of type T.
+ * @returns JSON response.
  */
 export const _delete = async (url: string, config?: RequestInit) => {
   const init = { method: 'DELETE', ...config };
