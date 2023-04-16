@@ -56,3 +56,15 @@ export const post = async <T>(
   const init = { method: 'POST', ...config, body };
   return await fetcher<T>(url, init);
 };
+
+/**
+ * Sends a DELETE request to the specified resource.
+ * @param url Path of resource.
+ * @param body Body of POST request.
+ * @param config fetch settings.
+ * @returns JSON response of type T.
+ */
+export const _delete = async (url: string, config?: RequestInit) => {
+  const init = { method: 'DELETE', ...config };
+  return await fetcher(url, init);
+};
