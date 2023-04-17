@@ -5,7 +5,6 @@ import { patch, post, _delete } from '../utils/fetch_wrapper.js';
 /**
  * Define types for the Auth0 Management API responses.
  */
-
 type AccessTokenResponse = {
   access_token: string;
   expires_in: number;
@@ -47,29 +46,37 @@ const auth0API = (() => {
   };
 
   /**
-   * Update a users attributes in the Auth0 database.
+   * Update an attribute for a user in the Auth0 database.
+   * Note: Auth0 prevents updating username, email and password in the same request,
+   * as these are the only attributes that this application updates, this function
+   * only updates one attribute at a time.
    * @param userId Id of the user.
-   * @param updates Attributes to update.
+   * @param attribute Auth0 attribute to update.
+   * @param value New value for the attribute.
    */
   const updateUser = async (
     userId: string,
-    updates: {
-      username?: string;
-      email?: string;
-      password?: string;
-    }
+    attribute: 'username' | 'email' | 'password' | 'picture',
+    value: string
   ) => {
     await requestAccessToken();
-    await patch(
-      `${config.auth0.domain}api/v2/users/${userId}1`,
-      JSON.stringify(updates),
-      {
-        headers: {
-          'content-type': 'application/json',
-          authorization: `Bearer ${accessToken.value}`
+    try {
+      await patch(
+        `${config.auth0.domain}api/v2/users/${userId}`,
+        JSON.stringify({ [attribute]: value }),
+        {
+          headers: {
+            'content-type': 'application/json',
+            authorization: `Bearer ${accessToken.value}`
+          }
         }
+      );
+    } catch (error) {
+      if (error instanceof Response) {
+        return Promise.reject(await error.json());
       }
-    );
+      return Promise.reject({ message: 'Error updating user' });
+    }
   };
 
   /**
@@ -77,8 +84,15 @@ const auth0API = (() => {
    * @param userId Id of the user.
    */
   const deleteUser = async (userId: string) => {
-    await requestAccessToken();
-    await _delete(`${config.auth0.domain}api/v2/users/${userId}`);
+    try {
+      await requestAccessToken();
+      await _delete(`${config.auth0.domain}api/v2/users/${userId}`);
+    } catch (error) {
+      if (error instanceof Response) {
+        return Promise.reject(await error.json());
+      }
+      throw error;
+    }
   };
 
   return {
