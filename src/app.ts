@@ -19,6 +19,10 @@ const app: Express = express();
  */
 const root = dirname(fileURLToPath(import.meta.url)).slice(0, -5);
 app.use(express.static(join(root, 'public')));
+app.use((req: Request, res: Response, next: NextFunction) => {
+  req.publicDir = join(root, 'public');
+  next();
+});
 
 /**
  * Mount body-parsing middleware.
