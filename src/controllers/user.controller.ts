@@ -5,6 +5,8 @@ import {
 } from '../data_access/errors.js';
 import userDb from '../data_access/user.data.js';
 import userService from '../services/user.service.js';
+import { UploadedFile } from 'express-fileupload';
+import config from '../config/general.config.js';
 
 /**
  * Controller for the users/:id endpoint.
@@ -26,7 +28,7 @@ export const getUser = async (
       user: {
         id: user.id,
         username: user.username,
-        image: user.image,
+        image: `${config.domain}${user.picture}`,
         createdAt: user.createdAt
       }
     });
@@ -283,14 +285,154 @@ export const getUserCurrentTrack = async (
   next: NextFunction
 ) => {
   try {
-    const userid = req.params.userid;
-    const currentTrack = await userService.getCurrentlyPlayingTrack(userid);
+    const userId = req.params.userid;
+    const currentTrack = await userService.getCurrentlyPlayingTrack(userId);
     return res.json({ track: currentTrack });
   } catch (error) {
     if (error instanceof AccessTokenError) {
       return res.status(401).json({
         error: {
           status: 401,
+          message: error.message
+        }
+      });
+    }
+    return next(error);
+  }
+};
+
+/**
+ * Controller for the users/settings endpoint.
+ * Returns the users settings.
+ * @param req Express Request object.
+ * @param res Express Response object.
+ * @param next next middleware function.
+ */
+export const getUserSettings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = await userDb.getUserById(req.user.id);
+    return res.json({
+      privateProfile: user.privateProfile,
+      profilePicture: `${config.domain}${user.picture}`,
+      topTracksTimeframe: user.topTracksTimeframe,
+      topTracksStyle: user.topTracksStyle,
+      topAlbumsTimeframe: user.topAlbumsTimeframe,
+      topAlbumsStyle: user.topAlbumsStyle,
+      topArtistsTimeframe: user.topArtistsTimeframe,
+      topArtistsStyle: user.topArtistsStyle,
+      spotifyConnection: user.spotifyRefreshToken !== null
+    });
+  } catch (error) {
+    if (error instanceof RecordNotFoundError) {
+      return res.status(404).json({
+        error: {
+          status: 404,
+          message: error.message
+        }
+      });
+    }
+    return next(error);
+  }
+};
+
+/**
+ * Controller for the users/settings endpoint.
+ * Valid settings include:
+ * - username, email, password, picture, privateProfile,
+ *   topTracksTimeframe, topTracksStyle, topAlbumsTimeframe
+ *   topAlbumsStyle, topArtistsTimeframe, topArtistsStyle
+ * @param req Express Request object.
+ * @param res Express Response object.
+ * @param next next middleware function.
+ */
+export const patchUserSettings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const settings: { [k: string]: any } = {};
+  const status: { [k: string]: any } = {};
+  // Validate the settings in the request body.
+  if (req.body.username) {
+    // between 3 and 15 characters
+    // only contain certain characters
+
+    //passed checks
+    settings.username = req.body.username;
+  }
+  if (req.body.email) {
+    // TODO:
+
+    //passed checks
+    settings.email = req.body.email;
+  }
+  if (req.body.password) {
+    if (req.body.password !== req.body.passwordConfirm) {
+      status.password = {
+        status: 'failure',
+        message: 'Passwords do not match.'
+      };
+    }
+
+    //passed checks
+    settings.password = req.body.password;
+  }
+  try {
+    // Validate user exists.
+    await userDb.getUserById(req.user.id);
+    const results = await userService.updateUserSettings(req.user.id, req.body);
+    return res.json(results);
+  } catch (error) {
+    if (error instanceof RecordNotFoundError) {
+      return res.status(404).json({
+        error: {
+          status: 404,
+          message: error.message
+        }
+      });
+    }
+    return next(error);
+  }
+  // TODO: return json response, indicating update status for each field requested.
+};
+
+/**
+ * Controller for the users/profile-image endpoint.
+ * @param req Express Request object.
+ * @param res Express Response object.
+ * @param next next middleware function.
+ */
+export const postProfilePicture = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.files) {
+      return res.status(400).json({
+        error: {
+          status: 400,
+          message: 'No files were uploaded.'
+        }
+      });
+    }
+    const results = await userService.updateProfilePicture(
+      req.user.id,
+      req.files.picture as UploadedFile
+    );
+
+    return res.json({
+      newProfilePicture: `${config.domain}${results}`
+    });
+  } catch (error) {
+    if (error instanceof RecordNotFoundError) {
+      return res.status(404).json({
+        error: {
+          status: 404,
           message: error.message
         }
       });
@@ -315,12 +457,12 @@ export const postUser = (req: Request, res: Response, next: NextFunction) => {
 };
 
 /**
- * Controller for the users/spotify/auth endpoint.
+ * Controller for the users/spotify endpoint.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
  */
-export const postSpotifyAuth = async (
+export const postSpotifyConnection = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -334,9 +476,60 @@ export const postSpotifyAuth = async (
     return res.json({ status: 'success' });
   } catch (error) {
     // TODO: Errors to handle
-    // - SpotifyAPI
-    // - User database
-    // - Param validation
+    // Add error to spotify POST to handle invalid code.
+    // can replicate by refreshing page with code in url.
+    if (error instanceof RecordNotFoundError) {
+      return res.status(404).json({
+        error: {
+          status: 404,
+          message: error.message
+        }
+      });
+    }
+    return next(error);
+  }
+};
+
+/**
+ * Controller for the users/spotify endpoint.
+ * @param req Express Request object.
+ * @param res Express Response object.
+ * @param next next middleware function.
+ */
+export const deleteSpotifyConnection = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    return res.json({ status: 'success' });
+  } catch (error) {
+    // TODO: Errors to handle
+    // Add error to spotify POST to handle invalid code.
+    // can replicate by refreshing page with code in url.
+    if (error instanceof RecordNotFoundError) {
+      return res.status(404).json({
+        error: {
+          status: 404,
+          message: error.message
+        }
+      });
+    }
+    return next(error);
+  }
+};
+
+/**
+ * Controller for the users/:userid endpoint.
+ * @param req Express Request object.
+ * @param res Express Response object.
+ * @param next next middleware function.
+ */
+export const deleteUser = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    console.log('User added');
+    return res.json({});
+  } catch (error) {
     return next(error);
   }
 };

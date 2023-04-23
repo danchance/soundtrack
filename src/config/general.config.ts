@@ -13,6 +13,7 @@ type Config = {
  */
 const development = {
   serverPort: 8000,
+  domain: 'http://localhost:8000',
   auth0: {
     audience: 'https://soundtrack/api',
     domain: 'https://soundtrack.uk.auth0.com/',

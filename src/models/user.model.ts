@@ -4,7 +4,7 @@ import { Sequelize, DataTypes, ModelDefined, Model, Optional } from 'sequelize';
  * Enum for the different timeframes for Top Tracks, Albums and Artists
  * on the users profile.
  */
-enum Timeframe {
+export enum Timeframe {
   WEEK = 'week',
   MONTH = 'month',
   YEAR = 'year',
@@ -15,7 +15,7 @@ enum Timeframe {
  * Enum for the different style types for Top Tracks, Albums and Artists
  * on the users profile.
  */
-enum StyleType {
+export enum StyleType {
   LIST = 'list',
   GRID = 'grid',
   CHART = 'chart'

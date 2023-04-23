@@ -59,18 +59,21 @@ const auth0API = (() => {
     attribute: 'username' | 'email' | 'password' | 'picture',
     value: string
   ) => {
+    // Auth0 requires connection when updating the password.
+    const body = JSON.stringify({
+      [attribute]: value,
+      ...(attribute === 'password' && {
+        connection: 'Username-Password-Authentication'
+      })
+    });
     await requestAccessToken();
     try {
-      await patch(
-        `${config.auth0.domain}api/v2/users/${userId}`,
-        JSON.stringify({ [attribute]: value }),
-        {
-          headers: {
-            'content-type': 'application/json',
-            authorization: `Bearer ${accessToken.value}`
-          }
+      await patch(`${config.auth0.domain}api/v2/users/${userId}`, body, {
+        headers: {
+          'content-type': 'application/json',
+          authorization: `Bearer ${accessToken.value}`
         }
-      );
+      });
     } catch (error) {
       if (error instanceof Response) {
         return Promise.reject(await error.json());
