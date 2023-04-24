@@ -13,10 +13,14 @@ type Config = {
  */
 const development = {
   serverPort: 8000,
+  domain: 'http://localhost:8000',
   auth0: {
     audience: 'https://soundtrack/api',
     domain: 'https://soundtrack.uk.auth0.com/',
-    jwksEndpoint: 'https://soundtrack.uk.auth0.com/.well-known/jwks.json'
+    jwksEndpoint: 'https://soundtrack.uk.auth0.com/.well-known/jwks.json',
+    M2MApplication: {
+      clientId: 'OUMe8qWZ5y62zxiJQjdtaC3Tr0VTNmMW'
+    }
   },
   spotify: {
     apiUrl: 'https://api.spotify.com/v1',

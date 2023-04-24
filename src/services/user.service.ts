@@ -6,6 +6,10 @@ import userTrackHistoryDb from '../data_access/usertrackhistory.data.js';
 import { IUserTrackHistory } from '../models/usertrackhistory.model.js';
 import trackService from './track.service.js';
 import { models, sequelize } from '../models/_index.js';
+import auth0API from '../data_access/auth0.data.js';
+import { StyleType, Timeframe } from '../models/user.model.js';
+import { UploadedFile } from 'express-fileupload';
+import fs from 'fs';
 
 /**
  * Type used to represent a users top tracks, albums or artists.
@@ -299,13 +303,155 @@ const userService = (() => {
     return null;
   };
 
+  /**
+   * Updates the users settings. There are 3 different scenarios, depending on
+   * the setting:
+   *  1) Setting is stored in the local database.
+   *  2) Setting is stored in the Auth0 database.
+   *  3) Setting is stored in both the local database and the Auth0 database.
+   * @param userId Id of the user.
+   * @param settings Settings object, containing the settings to update.
+   */
+  const updateUserSettings = async (
+    userId: string,
+    settings: {
+      email?: string;
+      password?: string;
+      username?: string;
+      picture?: string;
+      privateProfile?: boolean;
+      topTracksTimeframe?: Timeframe;
+      topTracksStyle?: StyleType;
+      topAlbumsTimeframe?: Timeframe;
+      topAlbumsStyle?: StyleType;
+      topArtistsTimeframe?: Timeframe;
+      topArtistsStyle?: StyleType;
+    }
+  ) => {
+    const status: { [k: string]: any } = {};
+    // Update settings individually, so we can return the status of each update.
+    // Also Auth0 only allows one update at a time for username, email and password.
+    for (const [key, value] of Object.entries(settings)) {
+      try {
+        // Update attributes stored in Auth0 database.
+        if (key === 'email' || key === 'password' || key === 'username') {
+          await auth0API.updateUser(userId, key, value as string);
+        }
+        if (key === 'picture' && process.env.NODE_ENV !== 'development') {
+          //TODO: Auth0 do not allow relative urls for profile pictures???
+          await auth0API.updateUser(userId, key, value as string);
+        }
+        // Update attributes stored in local database. Note: some attributes are
+        // stored in both the local and Auth0 database.
+        if (
+          key === 'username' ||
+          key === 'picture' ||
+          key === 'privateProfile' ||
+          key === 'topTracksTimeframe' ||
+          key === 'topTracksStyle' ||
+          key === 'topAlbumsTimeframe' ||
+          key === 'topAlbumsStyle' ||
+          key === 'topArtistsTimeframe' ||
+          key === 'topArtistsStyle'
+        ) {
+          await userDb.updateUser(userId, { [key]: value });
+        }
+        status[key] = { status: 'success' };
+      } catch (error: any) {
+        status[key] = { status: 'failure' };
+        if (error.message) {
+          status[key] = { ...status[key], message: error.message };
+        } else {
+          status[key] = { ...status[key], message: `Error updating ${key}` };
+        }
+      }
+    }
+    return status;
+  };
+
+  /**
+   * Updates the users profile picture. Profile picture is saved and the reference
+   * to the picture in the local and Auth0 databases are updated.
+   * Images are saved in the format <userId><rand num>.jpg, userIds are in the format
+   * <provider>|<userId> so we need to remove the pipe character first.
+   * @param userId Id of the user.
+   * @param picture New profile picture.
+   */
+  const updateProfilePicture = async (
+    userId: string,
+    picture: UploadedFile
+  ) => {
+    const user = await userDb.getUserById(userId);
+    // Remove old image if it exists.
+    if (user.picture) {
+      fs.unlink(`./public${user.picture}`, (err: any) => {
+        if (err) {
+          throw new Error('Error updating profile picture1');
+        }
+      });
+    }
+    // Save new image.
+    const randomValue = Math.floor(Math.random() * 10000);
+    const pictureName = `${userId.replace('|', '')}${randomValue}.jpg`;
+    const picturePath = `/images/profiles/${pictureName}`;
+    fs.writeFile(`./public${picturePath}`, picture.data, (err: any) => {
+      if (err) {
+        throw new Error('Error updating profile picture');
+      }
+    });
+    const res = await updateUserSettings(userId, { picture: picturePath });
+    if (res.picture.status === 'failure') {
+      throw new Error('Error updating profile picture');
+    }
+    return picturePath;
+  };
+
+  /**
+   * Deletes a users Spotify connection. This will delete the tokens needed
+   * to access the Spotify API for the user. This will not delete soundTrack
+   * connection in the users Spotify account as this is not possible.
+   * @param userId Id of the user.
+   */
+  const deleteSpotifyConnection = async (userId: string) => {
+    await userDb.updateUser(userId, {
+      spotifyAccessToken: null,
+      spotifyRefreshToken: null,
+      spotifyTokenExpires: null
+    });
+  };
+
+  /**
+   * Delete a users account. This will delete the user from the:
+   *  - Auth0 database
+   *  - Local database:
+   *     - User table
+   *     - User track history table
+   * @param userId Id of the user
+   */
+  const deleteAccount = async (userId: string) => {
+    // Check user exists before first deleting from Auth0.
+    await userDb.getUserById(userId);
+    await auth0API.deleteUser(userId);
+    try {
+      await userDb.deleteUser(userId);
+    } catch (error) {
+      // User deleted from Auth0 but not local database.
+      // Log error
+      throw error;
+    }
+  };
+
   return {
     authenticateSpotifyUser,
     updateTrackHistory,
     getTopTracks,
     getTopAlbums,
     getTopArtists,
-    getCurrentlyPlayingTrack
+    getCurrentlyPlayingTrack,
+    updateUserSettings,
+    updateProfilePicture,
+    deleteSpotifyConnection,
+    deleteAccount
   };
 })();
 

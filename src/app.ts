@@ -45,8 +45,7 @@ if (process.env.NODE_ENV === 'development') {
       await userDb.createUser({
         id: req.user.id,
         username: req.user.username,
-        image:
-          'http://localhost:8000/images/profiles/auth06416f24fd7a5ed86bc312ac7.jpg'
+        picture: '/images/profiles/auth06416f24fd7a5ed86bc312ac7.jpg'
       });
     } catch (error) {
       // Catch and ignore all errors in this situation.

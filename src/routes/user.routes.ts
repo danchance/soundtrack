@@ -1,10 +1,28 @@
 import { Router } from 'express';
 import * as userController from '../controllers/user.controller.js';
 import checkJwt from '../middleware/auth.js';
+import fileupload from 'express-fileupload';
 
 const router: Router = Router();
 
-router.get('/:user', userController.getUser);
+router.get('/settings', checkJwt, userController.getUserSettings);
+
+router.patch('/settings', checkJwt, userController.patchUserSettings);
+
+router.post(
+  '/profile-picture',
+  checkJwt,
+  fileupload(),
+  userController.postProfilePicture
+);
+
+router.post('/add', userController.postUser);
+
+router.post('/spotify', checkJwt, userController.postSpotifyConnection);
+
+router.delete('/spotify', checkJwt, userController.deleteSpotifyConnection);
+
+router.get('/:user/info', userController.getUser);
 
 router.get('/:user/profile', userController.getUserProfile);
 
@@ -22,8 +40,6 @@ router.get('/:user/artists', userController.getUserArtists);
 
 router.get('/:userid/current-track', userController.getUserCurrentTrack);
 
-router.post('/add', userController.postUser);
-
-router.post('/spotify/auth', checkJwt, userController.postSpotifyAuth);
+router.delete('/:userid', checkJwt, userController.deleteUser);
 
 export default router;
