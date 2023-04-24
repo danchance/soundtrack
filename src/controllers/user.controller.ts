@@ -83,7 +83,13 @@ export const getUserProfile = async (
       recentTracks: recentlyPlayed,
       tracks: topTracks,
       albums: topAlbums,
-      artists: topArtists
+      artists: topArtists,
+      topTracksStyle: user.topTracksStyle,
+      topTracksTimeframe: user.topTracksTimeframe,
+      topAlbumsStyle: user.topAlbumsStyle,
+      topAlbumsTimeframe: user.topAlbumsTimeframe,
+      topArtistsStyle: user.topArtistsStyle,
+      topArtistsTimeframe: user.topArtistsTimeframe
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
@@ -218,7 +224,11 @@ export const getUserTracks = async (
       });
     }
     const topTracks = await userService.getTopTracks(user.id, 10);
-    return res.json({ tracks: topTracks });
+    return res.json({
+      tracks: topTracks,
+      topTracksStyle: user.topTracksStyle,
+      topTracksTimeframe: user.topTracksTimeframe
+    });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
       return res.status(404).json({
@@ -259,7 +269,11 @@ export const getUserAlbums = async (
       });
     }
     const topAlbums = await userService.getTopAlbums(user.id, 10);
-    return res.json({ albums: topAlbums });
+    return res.json({
+      albums: topAlbums,
+      topAlbumsStyle: user.topAlbumsStyle,
+      topAlbumsTimeframe: user.topAlbumsTimeframe
+    });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
       return res.status(404).json({
@@ -300,7 +314,11 @@ export const getUserArtists = async (
       });
     }
     const topArtists = await userService.getTopArtists(user.id, 10);
-    return res.json({ artists: topArtists });
+    return res.json({
+      artists: topArtists,
+      topArtistsStyle: user.topArtistsStyle,
+      topArtistsTimeframe: user.topArtistsTimeframe
+    });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
       return res.status(404).json({
@@ -333,8 +351,6 @@ export const getUserCurrentTrack = async (
   try {
     const userId = req.params.userid;
     const user = await userDb.getUserById(userId);
-    console.log('-------------------');
-    console.log(req.user?.id);
     if (user.privateProfile && req.user?.id !== user.id) {
       return res.status(403).json({
         error: {
