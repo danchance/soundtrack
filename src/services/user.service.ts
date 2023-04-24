@@ -406,6 +406,27 @@ const userService = (() => {
     return picturePath;
   };
 
+  /**
+   * Delete a users account. This will delete the user from the:
+   *  - Auth0 database
+   *  - Local database:
+   *     - User table
+   *     - User track history table
+   * @param userId Id of the user
+   */
+  const deleteAccount = async (userId: string) => {
+    // Check user exists before first deleting from Auth0.
+    await userDb.getUserById(userId);
+    await auth0API.deleteUser(userId);
+    try {
+      await userDb.deleteUser(userId);
+    } catch (error) {
+      // User deleted from Auth0 but not local database.
+      // Log error
+      throw error;
+    }
+  };
+
   return {
     authenticateSpotifyUser,
     updateTrackHistory,
@@ -414,7 +435,8 @@ const userService = (() => {
     getTopArtists,
     getCurrentlyPlayingTrack,
     updateUserSettings,
-    updateProfilePicture
+    updateProfilePicture,
+    deleteAccount
   };
 })();
 

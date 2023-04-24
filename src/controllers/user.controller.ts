@@ -397,7 +397,6 @@ export const patchUserSettings = async (
     }
     return next(error);
   }
-  // TODO: return json response, indicating update status for each field requested.
 };
 
 /**
@@ -424,7 +423,6 @@ export const postProfilePicture = async (
       req.user.id,
       req.files.picture as UploadedFile
     );
-
     return res.json({
       newProfilePicture: `${config.domain}${results}`
     });
@@ -525,11 +523,23 @@ export const deleteSpotifyConnection = async (
  * @param res Express Response object.
  * @param next next middleware function.
  */
-export const deleteUser = (req: Request, res: Response, next: NextFunction) => {
+export const deleteUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    console.log('User added');
-    return res.json({});
+    await userService.deleteAccount(req.user.id);
+    return res.json({ status: 'success' });
   } catch (error) {
+    if (error instanceof RecordNotFoundError) {
+      return res.status(404).json({
+        error: {
+          status: 404,
+          message: error.message
+        }
+      });
+    }
     return next(error);
   }
 };

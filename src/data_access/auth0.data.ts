@@ -87,9 +87,13 @@ const auth0API = (() => {
    * @param userId Id of the user.
    */
   const deleteUser = async (userId: string) => {
+    await requestAccessToken();
     try {
-      await requestAccessToken();
-      await _delete(`${config.auth0.domain}api/v2/users/${userId}`);
+      await _delete(`${config.auth0.domain}api/v2/users/${userId}`, {
+        headers: {
+          authorization: `Bearer ${accessToken.value}`
+        }
+      });
     } catch (error) {
       if (error instanceof Response) {
         return Promise.reject(await error.json());
