@@ -64,8 +64,8 @@ const userService = (() => {
     ) {
       throw new AccessTokenError('User must authenticate with Spotify');
     }
-    // Subtract 2 minutes from the current time to account for any latency.
-    const currentDatetime = new Date(Date.now() - 120 * 1000);
+    // Add 2 minutes to the current time to account for any latency.
+    const currentDatetime = new Date(Date.now() + 120 * 1000);
     if (user.spotifyTokenExpires > currentDatetime) {
       return user.spotifyAccessToken;
     }
