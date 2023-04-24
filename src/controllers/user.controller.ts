@@ -52,6 +52,7 @@ export const getUser = async (
  *  - Top 10 streamed tracks.
  *  - Top 10 streamed artists.
  *  - Top 10 streamed albums.
+ * If the profile is private only the account owner can view the profile.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -66,6 +67,14 @@ export const getUserProfile = async (
     const user = await userDb.getUser({
       where: { username: req.params.user }
     });
+    if (user.privateProfile && req.user?.id !== user.id) {
+      return res.status(403).json({
+        error: {
+          status: 403,
+          message: 'User profile is private'
+        }
+      });
+    }
     const recentlyPlayed = await userService.updateTrackHistory(user.id, 10);
     const topTracks = await userService.getTopTracks(user.id, 10);
     const topAlbums = await userService.getTopAlbums(user.id, 10);
@@ -100,6 +109,7 @@ export const getUserProfile = async (
 /**
  * Controller for the GET users/:id/history endpoint.
  * Returns the last 10 tracks the user streamed on Spotify.
+ * If the profile is private only the account owner can view the track history.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -114,6 +124,14 @@ export const getUserHistory = async (
     const user = await userDb.getUser({
       where: { username: req.params.user }
     });
+    if (user.privateProfile && req.user?.id !== user.id) {
+      return res.status(403).json({
+        error: {
+          status: 403,
+          message: 'User profile is private'
+        }
+      });
+    }
     const recentlyPlayed = await userService.updateTrackHistory(user.id, 10);
     return res.json({ tracks: recentlyPlayed });
   } catch (error) {
@@ -176,6 +194,7 @@ export const getUserDiscover = (
 /**
  * Controller for the GET users/:id/tracks endpoint.
  * Returns the users top 10 streamed tracks.
+ * If the profile is private only the account owner can view the top tracks.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -190,6 +209,14 @@ export const getUserTracks = async (
     const user = await userDb.getUser({
       where: { username: req.params.user }
     });
+    if (user.privateProfile && req.user?.id !== user.id) {
+      return res.status(403).json({
+        error: {
+          status: 403,
+          message: 'User profile is private'
+        }
+      });
+    }
     const topTracks = await userService.getTopTracks(user.id, 10);
     return res.json({ tracks: topTracks });
   } catch (error) {
@@ -208,6 +235,7 @@ export const getUserTracks = async (
 /**
  * Controller for the GET users/:id/albums endpoint.
  * Returns the users top 10 streamed albums.
+ * If the profile is private only the account owner can view the top albums.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -222,6 +250,14 @@ export const getUserAlbums = async (
     const user = await userDb.getUser({
       where: { username: req.params.user }
     });
+    if (user.privateProfile && req.user?.id !== user.id) {
+      return res.status(403).json({
+        error: {
+          status: 403,
+          message: 'User profile is private'
+        }
+      });
+    }
     const topAlbums = await userService.getTopAlbums(user.id, 10);
     return res.json({ albums: topAlbums });
   } catch (error) {
@@ -240,6 +276,7 @@ export const getUserAlbums = async (
 /**
  * Controller for the GET users/:id/artists endpoint.
  * Returns the users top 10 streamed artists.
+ * If the profile is private only the account owner can view the top artists.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -254,6 +291,14 @@ export const getUserArtists = async (
     const user = await userDb.getUser({
       where: { username: req.params.user }
     });
+    if (user.privateProfile && req.user?.id !== user.id) {
+      return res.status(403).json({
+        error: {
+          status: 403,
+          message: 'User profile is private'
+        }
+      });
+    }
     const topArtists = await userService.getTopArtists(user.id, 10);
     return res.json({ artists: topArtists });
   } catch (error) {
@@ -275,6 +320,7 @@ export const getUserArtists = async (
  * If the user is not currently streaming a track the last streamed
  * track is returned, with a flag indicating it is not being streamed
  * currently.
+ * If the profile is private only the account owner can view the current track.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -286,6 +332,17 @@ export const getUserCurrentTrack = async (
 ) => {
   try {
     const userId = req.params.userid;
+    const user = await userDb.getUserById(userId);
+    console.log('-------------------');
+    console.log(req.user?.id);
+    if (user.privateProfile && req.user?.id !== user.id) {
+      return res.status(403).json({
+        error: {
+          status: 403,
+          message: 'User profile is private'
+        }
+      });
+    }
     const currentTrack = await userService.getCurrentlyPlayingTrack(userId);
     return res.json({ track: currentTrack });
   } catch (error) {
