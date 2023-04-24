@@ -407,6 +407,20 @@ const userService = (() => {
   };
 
   /**
+   * Deletes a users Spotify connection. This will delete the tokens needed
+   * to access the Spotify API for the user. This will not delete soundTrack
+   * connection in the users Spotify account as this is not possible.
+   * @param userId Id of the user.
+   */
+  const deleteSpotifyConnection = async (userId: string) => {
+    await userDb.updateUser(userId, {
+      spotifyAccessToken: null,
+      spotifyRefreshToken: null,
+      spotifyTokenExpires: null
+    });
+  };
+
+  /**
    * Delete a users account. This will delete the user from the:
    *  - Auth0 database
    *  - Local database:
@@ -436,6 +450,7 @@ const userService = (() => {
     getCurrentlyPlayingTrack,
     updateUserSettings,
     updateProfilePicture,
+    deleteSpotifyConnection,
     deleteAccount
   };
 })();

@@ -9,7 +9,7 @@ import { UploadedFile } from 'express-fileupload';
 import config from '../config/general.config.js';
 
 /**
- * Controller for the users/:id endpoint.
+ * Controller for the GET users/:id endpoint.
  * Gets user information for the requested username.
  * @param req Express Request object.
  * @param res Express Response object.
@@ -46,7 +46,7 @@ export const getUser = async (
 };
 
 /**
- * Controller for the users/:id/profile endpoint.
+ * Controller for the GET users/:id/profile endpoint.
  * Returns all data displayed on the users profile page.
  *  - Last 10 tracks the user streamed on Spotify.
  *  - Top 10 streamed tracks.
@@ -98,7 +98,7 @@ export const getUserProfile = async (
 };
 
 /**
- * Controller for the users/:id/history endpoint.
+ * Controller for the GET users/:id/history endpoint.
  * Returns the last 10 tracks the user streamed on Spotify.
  * @param req Express Request object.
  * @param res Express Response object.
@@ -138,7 +138,7 @@ export const getUserHistory = async (
 };
 
 /**
- * Controller for the users/:id/recap endpoint.
+ * Controller for the GET users/:id/recap endpoint.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -156,7 +156,7 @@ export const getUserRecap = (
 };
 
 /**
- * Controller for the users/:id/discover endpoint.
+ * Controller for the GETusers/:id/discover endpoint.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -174,7 +174,7 @@ export const getUserDiscover = (
 };
 
 /**
- * Controller for the users/:id/tracks endpoint.
+ * Controller for the GET users/:id/tracks endpoint.
  * Returns the users top 10 streamed tracks.
  * @param req Express Request object.
  * @param res Express Response object.
@@ -206,7 +206,7 @@ export const getUserTracks = async (
 };
 
 /**
- * Controller for the users/:id/albums endpoint.
+ * Controller for the GET users/:id/albums endpoint.
  * Returns the users top 10 streamed albums.
  * @param req Express Request object.
  * @param res Express Response object.
@@ -238,7 +238,7 @@ export const getUserAlbums = async (
 };
 
 /**
- * Controller for the users/:id/artists endpoint.
+ * Controller for the GET users/:id/artists endpoint.
  * Returns the users top 10 streamed artists.
  * @param req Express Request object.
  * @param res Express Response object.
@@ -270,7 +270,7 @@ export const getUserArtists = async (
 };
 
 /**
- * Controller for the users/userid/current-track endpoint.
+ * Controller for the GET users/userid/current-track endpoint.
  * Returns the current track the user is listening to on Spotify.
  * If the user is not currently streaming a track the last streamed
  * track is returned, with a flag indicating it is not being streamed
@@ -302,7 +302,7 @@ export const getUserCurrentTrack = async (
 };
 
 /**
- * Controller for the users/settings endpoint.
+ * Controller for the GET users/settings endpoint.
  * Returns the users settings.
  * @param req Express Request object.
  * @param res Express Response object.
@@ -340,7 +340,7 @@ export const getUserSettings = async (
 };
 
 /**
- * Controller for the users/settings endpoint.
+ * Controller for the PATCH users/settings endpoint.
  * Valid settings include:
  * - username, email, password, picture, privateProfile,
  *   topTracksTimeframe, topTracksStyle, topAlbumsTimeframe
@@ -400,7 +400,8 @@ export const patchUserSettings = async (
 };
 
 /**
- * Controller for the users/profile-image endpoint.
+ * Controller for the POST users/profile-image endpoint.
+ * Updates the users profile picture to the image in the request.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -419,6 +420,7 @@ export const postProfilePicture = async (
         }
       });
     }
+    // TODO: validate file
     const results = await userService.updateProfilePicture(
       req.user.id,
       req.files.picture as UploadedFile
@@ -440,7 +442,7 @@ export const postProfilePicture = async (
 };
 
 /**
- * Controller for the users/add endpoint.
+ * Controller for the POST users/add endpoint.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -455,7 +457,8 @@ export const postUser = (req: Request, res: Response, next: NextFunction) => {
 };
 
 /**
- * Controller for the users/spotify endpoint.
+ * Controller for the POST users/spotify endpoint.
+ * Connects the users Spotify account to their soundTrack account.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -489,7 +492,8 @@ export const postSpotifyConnection = async (
 };
 
 /**
- * Controller for the users/spotify endpoint.
+ * Controller for the DELETE users/spotify endpoint.
+ * Disconnects the users Spotify account from their soundTrack account.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -500,11 +504,9 @@ export const deleteSpotifyConnection = async (
   next: NextFunction
 ) => {
   try {
+    await userService.deleteSpotifyConnection(req.user.id);
     return res.json({ status: 'success' });
   } catch (error) {
-    // TODO: Errors to handle
-    // Add error to spotify POST to handle invalid code.
-    // can replicate by refreshing page with code in url.
     if (error instanceof RecordNotFoundError) {
       return res.status(404).json({
         error: {
@@ -518,7 +520,8 @@ export const deleteSpotifyConnection = async (
 };
 
 /**
- * Controller for the users/:userid endpoint.
+ * Controller for the DELETE users/:userid endpoint.
+ * Deletes the user account.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.

@@ -29,9 +29,9 @@ export interface IUser {
   username: string;
   picture: string;
   privateProfile?: boolean;
-  spotifyAccessToken?: string;
-  spotifyRefreshToken?: string;
-  spotifyTokenExpires?: Date;
+  spotifyAccessToken?: string | null;
+  spotifyRefreshToken?: string | null;
+  spotifyTokenExpires?: Date | null;
   topTracksTimeframe?: Timeframe;
   topTracksStyle?: StyleType;
   topAlbumsTimeframe?: Timeframe;
