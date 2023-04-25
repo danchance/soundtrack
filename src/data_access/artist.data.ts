@@ -29,7 +29,7 @@ const artistDb = (() => {
   };
 
   /**
-   * Retrieves a Artist record by Id.
+   * Retrieves an Artist record by Id.
    * @param artistId Id of the artist to retrieve.
    * @returns The requested artist record.
    * @throws RecordNotFoundError if no genre with the given Id exists.
@@ -46,7 +46,7 @@ const artistDb = (() => {
   };
 
   /**
-   * Retrieves a Artist record by its url parameter slug.
+   * Retrieves an Artist record by its url parameter slug.
    * @param slug slug of the artist to retrieve.
    * @returns The requested artist record.
    * @throws RecordNotFoundError if no genre with the given Id exists.
@@ -77,7 +77,7 @@ const artistDb = (() => {
   };
 
   /**
-   * Updates a artist record in the Artist table.
+   * Updates an artist record in the Artist table.
    * @param artistId The Id of the artist to update.
    * @param updates The fields to update.
    * @returns The updated artist record.
@@ -98,7 +98,7 @@ const artistDb = (() => {
   };
 
   /**
-   * Deletes a artist record from the Artist table.
+   * Deletes an artist record from the Artist table.
    * @param artistId The Id of the artist to delete.
    * @throws RecordNotFoundError if no artist with the given Id exists.
    */
