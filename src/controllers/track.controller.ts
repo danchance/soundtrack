@@ -1,11 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
-import { UniqueConstraintError } from 'sequelize';
-import genreDb from '../data_access/genre.data.js';
-import spotifyApi from '../data_access/spotify.data.js';
-import userDb from '../data_access/user.data.js';
+import { RecordNotFoundError } from '../data_access/errors.js';
+import trackDb from '../data_access/track.data.js';
 
 /**
- * Controller for the tracks/:id endpoint.
+ * Controller for the GET tracks/:trackSlug endpoint.
  * @param req Express Request object
  * @param res Express Response object
  * @param next next middleware function
@@ -16,45 +14,18 @@ export const getTrack = async (
   next: NextFunction
 ) => {
   try {
-    // const accessToken =
-    //   'BQC44W6iWJtFSV9Kl3w_J0gPKKhfQ6FkKS-wyfaURSwMnZsRF3ACt4lLY1a64fshCc5SiOQQgkEpC5pK24Dx9dxwtvpG0lZ7UHfpwZlzrAK9RNbgbGGK_7lWJDlrLkbX_MKgms09J1_WkFhOzFSTYsr2AGWEE2TfPiG5bFh-fv6X5uXwDJPoIx7yMf8';
-    // const trackId = '5kqIPrATaCc2LqxVWzQGbk';
-    // const data = await spotifyApi.getTrack(accessToken, trackId);
-    // const data = await spotifyApi.getRecentlyPlayed(accessToken, 1, 30);
-    // const data = await spotifyApi.getCurrentlyPlayingTrack(accessToken);
-    // console.log(
-    //   await userDb.createUser({
-    //     id: 1234,
-    //     username: 'username2',
-    //     spotifyAccessToken: 'token1',
-    //     spotifyRefreshToken: 'token1',
-    //     spotifyTokenExpires: new Date(Date.now())
-    //   })
-    // );
-    // await userDb.getUserById('1234');
-    // console.log(await userDb.updateUser('123', { username: 'username2' }));
-    // await genreDb.bulkCreateGenres([
-    //   { id: '1', name: 'genre 1' },
-    //   { id: '2', name: 'genre 2' },
-    //   { id: '3', name: 'genre 3' }
-    // ]);
-    const genres = await genreDb.getGenres({});
-    console.log(genres.count);
-    // console.log(genres.rows[0]);
-    console.log(genres.rows);
-    return res.json({});
+    const { trackSlug } = req.params;
+    const track = await trackDb.getTrackBySlug(trackSlug);
+    return res.json({ id: track.id, name: track.name });
   } catch (error) {
-    console.log('--------------ERROR--------------');
-    if (error instanceof UniqueConstraintError) {
-      if (error.errors[0].path === 'username') {
-        console.log('duplicate username');
-      }
-      if (error.errors[0].path === 'PRIMARY') {
-        console.log('duplicate id');
-      }
-    } else {
-      console.error(error);
+    if (error instanceof RecordNotFoundError) {
+      return res.status(404).json({
+        error: {
+          status: 404,
+          message: error.message
+        }
+      });
     }
-    return res.json({ error });
+    return next(error);
   }
 };
