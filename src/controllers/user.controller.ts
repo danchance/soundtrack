@@ -138,8 +138,8 @@ export const getUserHistory = async (
         }
       });
     }
-    const recentlyPlayed = await userService.updateTrackHistory(user.id, 10);
-    return res.json({ tracks: recentlyPlayed });
+    const recentTracks = await userService.updateTrackHistory(user.id, 10);
+    return res.json({ tracks: recentTracks });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
       return res.status(404).json({

@@ -182,8 +182,11 @@ const userService = (() => {
         SELECT 
           tracks.id, 
           tracks.name as trackName, 
+          tracks.slug as trackSlug,
           albums.artwork, 
+          albums.slug as albumSlug,
           artists.name as artistName,
+          artists.slug as artistSlug,   
           COUNT(tracks.id) AS count
         FROM 
           user_track_histories
@@ -223,7 +226,9 @@ const userService = (() => {
         albums.id, 
         albums.name as albumName, 
         albums.artwork, 
+        albums.slug as albumSlug,
         artists.name as artistName,
+        artists.slug as artistSlug,   
         COUNT(albums.id) AS count
       FROM 
         user_track_histories
@@ -261,7 +266,8 @@ const userService = (() => {
       SELECT 
         artists.id,
         artists.name as artistName,
-        artists.image as artwork,        
+        artists.image as artwork,
+        artists.slug as artistSlug,        
         COUNT(artists.id) AS count
       FROM 
         user_track_histories
