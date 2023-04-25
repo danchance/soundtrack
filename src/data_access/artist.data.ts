@@ -46,6 +46,20 @@ const artistDb = (() => {
   };
 
   /**
+   * Retrieves a Artist record by its url parameter slug.
+   * @param slug slug of the artist to retrieve.
+   * @returns The requested artist record.
+   * @throws RecordNotFoundError if no genre with the given Id exists.
+   */
+  const getArtistBySlug = async (slug: string): Promise<IArtist> => {
+    const artist = await models.artist.findOne({ where: { slug: slug } });
+    if (artist === null) {
+      throw new RecordNotFoundError('Artist', `Artist ${slug} not found.`);
+    }
+    return artist.toJSON();
+  };
+
+  /**
    * Retrieves artist records for the query and the number of records that
    * match the query.
    * @param query Search query to execute.
@@ -103,6 +117,7 @@ const artistDb = (() => {
     createArtist,
     bulkCreateArtists,
     getArtistById,
+    getArtistBySlug,
     getArtists,
     updateArtist,
     deleteArtist
