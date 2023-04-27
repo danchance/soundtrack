@@ -205,7 +205,6 @@ const userService = (() => {
         type: QueryTypes.SELECT
       }
     );
-    console.log(topTracks);
     return topTracks;
   };
 

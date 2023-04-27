@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import artistDb from '../data_access/artist.data.js';
 import { RecordNotFoundError } from '../data_access/errors.js';
+import artistService from '../services/artist.service.js';
 
 /**
  * Controller for the GET artists/:artistSlug endpoint.
@@ -16,10 +17,16 @@ export const getArtist = async (
   try {
     const { artistSlug } = req.params;
     const artist = await artistDb.getArtistBySlug(artistSlug);
+    const topTracks = await artistService.getTopTracks(artist.id, 10);
+    const topAlbums = await artistService.getTopAlbums(artist.id, 10);
+    const topListeners = await artistService.getTopListeners(artist.id, 10);
     return res.json({
       id: artist.id,
       name: artist.name,
-      artwork: artist.image
+      artwork: artist.image,
+      topTracks: topTracks,
+      topAlbums: topAlbums,
+      topListeners: topListeners
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
