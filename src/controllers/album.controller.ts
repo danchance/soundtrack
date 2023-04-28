@@ -29,6 +29,7 @@ export const getAlbum = async (
       type: album.type,
       artistName: artist.name,
       artistArtwork: artist.image,
+      artistSlug: artist.slug,
       albumTracks: albumTracks,
       topListeners: topListeners
     });

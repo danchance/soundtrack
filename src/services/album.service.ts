@@ -21,6 +21,7 @@ type AlbumTrack = {
   trackName: string;
   duration: number;
   count: number;
+  trackSlug: string;
 }[];
 
 /**
@@ -107,6 +108,7 @@ const albumService = (() => {
         tracks.id,
         tracks.name as trackName,
         tracks.duration,
+        tracks.slug as trackSlug,
         COUNT(user_track_histories.id) as count
       FROM
         albums

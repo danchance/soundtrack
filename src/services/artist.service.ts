@@ -9,26 +9,29 @@ import { QueryTypes } from 'sequelize';
 /**
  * Define types used in this file.
  */
-type TopListeners = {
+type TopListener = {
   id: string;
   username: string;
   picture: string;
   count: number;
-}[];
+};
 
-type TopTracks = {
+type TopTrack = {
   id: string;
   trackName: string;
   artwork: string;
   count: number;
-}[];
+  trackSlug: string;
+  albumSlug: string;
+};
 
-type TopAlbums = {
+type TopAlbum = {
   id: string;
   albumName: string;
   artwork: string;
   count: number;
-}[];
+  albumSlug: string;
+};
 
 /**
  * Handles all artist logic.
@@ -94,7 +97,7 @@ const artistService = (() => {
   const getTopListeners = async (
     artistId: string,
     limit: number
-  ): Promise<TopListeners> => {
+  ): Promise<TopListener[]> => {
     const topListeners = await sequelize.query(
       `
       SELECT
@@ -121,7 +124,7 @@ const artistService = (() => {
         type: QueryTypes.SELECT
       }
     );
-    return topListeners as TopListeners;
+    return topListeners as TopListener[];
   };
 
   /**
@@ -133,13 +136,15 @@ const artistService = (() => {
   const getTopTracks = async (
     artistId: string,
     limit: number
-  ): Promise<TopTracks> => {
+  ): Promise<TopTrack[]> => {
     const topTracks = await sequelize.query(
       `
       SELECT
         tracks.id,
         tracks.name as trackName,
+        tracks.slug as trackSlug,
         albums.artwork,
+        albums.slug as albumSlug,
         COUNT(tracks.id) as count
       FROM
         user_track_histories
@@ -158,7 +163,7 @@ const artistService = (() => {
         type: QueryTypes.SELECT
       }
     );
-    return topTracks as TopTracks;
+    return topTracks as TopTrack[];
   };
 
   /**
@@ -170,13 +175,14 @@ const artistService = (() => {
   const getTopAlbums = async (
     artistId: string,
     limit: number
-  ): Promise<TopAlbums> => {
+  ): Promise<TopAlbum[]> => {
     const topAlbums = await sequelize.query(
       `
       SELECT
         albums.id,
         albums.name as albumName,
         albums.artwork,
+        albums.slug as albumSlug,
         COUNT(albums.id) as count
       FROM
         user_track_histories
@@ -195,7 +201,7 @@ const artistService = (() => {
         type: QueryTypes.SELECT
       }
     );
-    return topAlbums as TopAlbums;
+    return topAlbums as TopAlbum[];
   };
 
   return { addArtist, getTopListeners, getTopTracks, getTopAlbums };
