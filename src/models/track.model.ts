@@ -15,7 +15,7 @@ export interface ITrack {
   name: string;
   duration: number;
   albumId: ForeignKey<string>;
-  slug: string;
+  slug?: string;
 }
 
 /**

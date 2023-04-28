@@ -1,10 +1,27 @@
-import { UniqueConstraintError } from 'sequelize';
+import { QueryTypes, UniqueConstraintError } from 'sequelize';
 import albumDb from '../data_access/album.data.js';
 import artistDb from '../data_access/artist.data.js';
-import { RateLimitError } from '../data_access/errors.js';
 import spotifyApi, { SpotifyAlbum } from '../data_access/spotify.data.js';
 import trackDb from '../data_access/track.data.js';
 import artistService from './artist.service.js';
+import { sequelize } from '../models/_index.js';
+
+/**
+ * Define types used in this file.
+ */
+type TopListener = {
+  id: string;
+  username: string;
+  picture: string;
+  count: number;
+};
+
+type AlbumTrack = {
+  id: string;
+  trackName: string;
+  duration: number;
+  count: number;
+}[];
 
 /**
  * Handles all album logic.
@@ -78,7 +95,74 @@ const albumService = (() => {
     } while (spotifyTracks.total > pageSize * page);
   };
 
-  return { addAlbum, addAlbumTracks };
+  /**
+   * Returns all tracks on an album along with the stream count for each
+   * track.
+   * @param albumId Id of the album.
+   */
+  const getAlbumTracks = async (albumId: string): Promise<AlbumTrack[]> => {
+    const albumTracks = await sequelize.query(
+      `
+      SELECT
+        tracks.id,
+        tracks.name as trackName,
+        tracks.duration,
+        COUNT(user_track_histories.id) as count
+      FROM
+        albums
+      LEFT JOIN
+        tracks ON albums.id = tracks.album_id
+      LEFT JOIN
+        user_track_histories ON tracks.id = user_track_histories.track_id
+      WHERE albums.id = :album_id
+      GROUP BY tracks.id
+      ORDER BY count DESC
+      `,
+      {
+        replacements: { album_id: albumId },
+        type: QueryTypes.SELECT
+      }
+    );
+    return albumTracks as AlbumTrack[];
+  };
+
+  /**
+   * Returns the users with the most streams of the tracks in the album.
+   * @param albumId Id of the album.
+   * @param limit Maximum number of top listeners to return.
+   */
+  const getTopListeners = async (
+    albumId: string,
+    limit: number
+  ): Promise<TopListener[]> => {
+    const topListeners = await sequelize.query(
+      `
+      SELECT
+        users.id,
+        users.username,
+        users.picture,
+        COUNT(users.id) as count
+      FROM
+        user_track_histories
+      LEFT JOIN
+        users ON user_track_histories.user_id = users.id
+      LEFT JOIN 
+        tracks ON user_track_histories.track_id = tracks.id
+      LEFT JOIN 
+        albums ON tracks.album_id = albums.id
+      WHERE albums.id = :album_id
+      GROUP BY users.id
+      ORDER BY count DESC
+      `,
+      {
+        replacements: { album_id: albumId, limit: limit },
+        type: QueryTypes.SELECT
+      }
+    );
+    return topListeners as TopListener[];
+  };
+
+  return { addAlbum, addAlbumTracks, getAlbumTracks, getTopListeners };
 })();
 
 export default albumService;

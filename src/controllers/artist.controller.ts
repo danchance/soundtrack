@@ -22,8 +22,8 @@ export const getArtist = async (
     const topListeners = await artistService.getTopListeners(artist.id, 10);
     return res.json({
       id: artist.id,
-      name: artist.name,
-      artwork: artist.image,
+      artistName: artist.name,
+      artistArtwork: artist.image,
       topTracks: topTracks,
       topAlbums: topAlbums,
       topListeners: topListeners
