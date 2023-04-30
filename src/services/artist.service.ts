@@ -118,6 +118,7 @@ const artistService = (() => {
       WHERE artists.id = :artist_id
       GROUP BY users.id
       ORDER BY count DESC
+      LIMIT :limit;
       `,
       {
         replacements: { artist_id: artistId, limit: limit },
@@ -157,6 +158,7 @@ const artistService = (() => {
       WHERE artists.id = :artist_id
       GROUP BY tracks.id
       ORDER BY count DESC
+      LIMIT :limit;
       `,
       {
         replacements: { artist_id: artistId, limit: limit },
@@ -195,6 +197,7 @@ const artistService = (() => {
       WHERE artists.id = :artist_id
       GROUP BY albums.id
       ORDER BY count DESC
+      LIMIT :limit;
       `,
       {
         replacements: { artist_id: artistId, limit: limit },

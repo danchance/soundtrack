@@ -155,6 +155,7 @@ const albumService = (() => {
       WHERE albums.id = :album_id
       GROUP BY users.id
       ORDER BY count DESC
+      LIMIT :limit;
       `,
       {
         replacements: { album_id: albumId, limit: limit },

@@ -71,6 +71,7 @@ const trackService = (() => {
         WHERE tracks.id = :track_id
         GROUP BY users.id
         ORDER BY count DESC
+        LIMIT :limit;
         `,
       {
         replacements: { artist_id: trackId, limit: limit },
