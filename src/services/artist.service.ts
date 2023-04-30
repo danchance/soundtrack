@@ -19,6 +19,7 @@ type TopListener = {
 type TopTrack = {
   id: string;
   trackName: string;
+  duration: string;
   artwork: string;
   count: number;
   trackSlug: string;
@@ -144,6 +145,7 @@ const artistService = (() => {
         tracks.id,
         tracks.name as trackName,
         tracks.slug as trackSlug,
+        tracks.duration,
         albums.artwork,
         albums.slug as albumSlug,
         COUNT(tracks.id) as count

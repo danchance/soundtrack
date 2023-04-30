@@ -5,4 +5,6 @@ const router: Router = Router();
 
 router.get('/:trackSlug', trackController.getTrack);
 
+router.get('/:trackSlug/data', trackController.getTrackData);
+
 export default router;

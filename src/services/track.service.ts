@@ -74,7 +74,7 @@ const trackService = (() => {
         LIMIT :limit;
         `,
       {
-        replacements: { artist_id: trackId, limit: limit },
+        replacements: { track_id: trackId, limit: limit },
         type: QueryTypes.SELECT
       }
     );

@@ -5,6 +5,8 @@ const router: Router = Router();
 
 router.get('/:artistSlug', artistController.getArtist);
 
+router.get('/:artistSlug/data', artistController.getArtistData);
+
 router.get('/:artistSlug/albums', artistController.getArtistAlbums);
 
 router.get(
