@@ -64,9 +64,9 @@ export const getAlbumData = async (
     const artist = await artistDb.getArtistById(album.artistId!);
     const albumTracks = await albumService.getAlbumTracks(album.id);
     const topListeners = await albumService.getTopListeners(album.id, 10);
-    // We want to display 6 other albums, so we get 7 and filter out the
+    // We want to display 6 other albums, but we get 7 and filter out the
     // current album if it exists.
-    const otherAlbums = await artistService.getArtistAlbums(artist.id, 7);
+    const otherAlbums = await artistService.getArtistRandomAlbums(artist.id, 7);
     return res.json({
       id: album.id,
       albumName: album.name,

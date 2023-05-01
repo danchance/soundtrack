@@ -5,6 +5,7 @@ import spotifyApi, { SpotifyArtist } from '../data_access/spotify.data.js';
 import albumService from './album.service.js';
 import { sequelize } from '../models/_index.js';
 import { QueryTypes } from 'sequelize';
+import trackDb from '../data_access/track.data.js';
 
 /**
  * Define types used in this file.
@@ -40,6 +41,15 @@ type Album = {
   albumName: string;
   artwork: string;
   albumSlug: string;
+};
+
+type Track = {
+  id: string;
+  name: string;
+  artwork: string;
+  trackSlug: string;
+  albumSlug: string;
+  artistSlug: string;
 };
 
 /**
@@ -219,11 +229,44 @@ const artistService = (() => {
   };
 
   /**
-   * Returns albums by an artist.
+   * Returns a random list of tracks by an artist.
    * @param albumId Id of the album.
    * @param limit Maximum number of albums to return.
    */
-  const getArtistAlbums = async (
+  const getArtistRandomTracks = async (artistId: string, limit: number) => {
+    const tracks = await sequelize.query(
+      `
+      SELECT
+        tracks.id,
+        tracks.name,
+        albums.artwork,
+        tracks.slug as trackSlug,
+        albums.slug as albumSlug,
+        artists.slug as artistSlug
+      FROM
+        tracks
+      LEFT JOIN
+        albums ON tracks.album_id = albums.id
+      LEFT JOIN
+        artists ON albums.artist_id = artists.id
+      WHERE artists.id = :artist_id
+      ORDER BY rand()
+      LIMIT :limit;
+      `,
+      {
+        replacements: { artist_id: artistId, limit: limit },
+        type: QueryTypes.SELECT
+      }
+    );
+    return tracks as Track[];
+  };
+
+  /**
+   * Returns a random list of albums by an artist.
+   * @param albumId Id of the album.
+   * @param limit Maximum number of albums to return.
+   */
+  const getArtistRandomAlbums = async (
     artistId: string,
     limit: number
   ): Promise<Album[]> => {
@@ -237,6 +280,7 @@ const artistService = (() => {
       FROM
         albums
       WHERE albums.artist_id = :artist_id
+      ORDER BY rand()
       LIMIT :limit;
       `,
       {
@@ -252,7 +296,8 @@ const artistService = (() => {
     getTopListeners,
     getTopTracks,
     getTopAlbums,
-    getArtistAlbums
+    getArtistRandomTracks,
+    getArtistRandomAlbums
   };
 })();
 
