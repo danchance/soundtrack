@@ -20,9 +20,12 @@ type AlbumTrack = {
   id: string;
   trackName: string;
   duration: number;
+  artwork: string;
   count: number;
   trackSlug: string;
-}[];
+  albumSlug: string;
+  artistSlug: string;
+};
 
 /**
  * Handles all album logic.
@@ -108,7 +111,10 @@ const albumService = (() => {
         tracks.id,
         tracks.name as trackName,
         tracks.duration,
+        albums.artwork,
         tracks.slug as trackSlug,
+        albums.slug as albumSlug,
+        artists.slug as artistSlug,
         COUNT(user_track_histories.id) as count
       FROM
         albums
@@ -116,6 +122,8 @@ const albumService = (() => {
         tracks ON albums.id = tracks.album_id
       LEFT JOIN
         user_track_histories ON tracks.id = user_track_histories.track_id
+      LEFT JOIN 
+        artists ON albums.artist_id = artists.id
       WHERE albums.id = :album_id
       GROUP BY tracks.id
       ORDER BY count DESC
@@ -165,7 +173,29 @@ const albumService = (() => {
     return topListeners as TopListener[];
   };
 
-  return { addAlbum, addAlbumTracks, getAlbumTracks, getTopListeners };
+  /**
+   * Calculates the total duration of an album.
+   * The duration of the album is not stored, so it must be calculated
+   * using the duration of each track.
+   * @param albumId Id of the album.
+   * @returns The total duration of the album in milliseconds.
+   */
+  const getAlbumDuration = async (albumId: string): Promise<number> => {
+    const albumTracks = await getAlbumTracks(albumId);
+    const albumDuration = albumTracks.reduce(
+      (total, track) => total + track.duration,
+      0
+    );
+    return albumDuration;
+  };
+
+  return {
+    addAlbum,
+    addAlbumTracks,
+    getAlbumTracks,
+    getTopListeners,
+    getAlbumDuration
+  };
 })();
 
 export default albumService;

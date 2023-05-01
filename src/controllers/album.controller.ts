@@ -4,6 +4,7 @@ import albumDb from '../data_access/album.data.js';
 import artistDb from '../data_access/artist.data.js';
 import albumService from '../services/album.service.js';
 import config from '../config/general.config.js';
+import artistService from '../services/artist.service.js';
 
 /**
  * Controller for the GET albums/:albumSlug endpoint.
@@ -21,13 +22,16 @@ export const getAlbum = async (
     const { albumSlug } = req.params;
     const album = await albumDb.getAlbumBySlug(albumSlug);
     const artist = await artistDb.getArtistById(album.artistId!);
+    const albumDuration = await albumService.getAlbumDuration(album.id);
     return res.json({
       id: album.id,
       name: album.name,
       artwork: album.artwork,
       releaseYear: album.releaseYear,
+      trackNum: album.trackNum,
       artistName: artist.name,
-      artistSlug: artist.slug
+      artistSlug: artist.slug,
+      duration: albumDuration
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
@@ -60,6 +64,9 @@ export const getAlbumData = async (
     const artist = await artistDb.getArtistById(album.artistId!);
     const albumTracks = await albumService.getAlbumTracks(album.id);
     const topListeners = await albumService.getTopListeners(album.id, 10);
+    // We want to display 6 other albums, so we get 7 and filter out the
+    // current album if it exists.
+    const otherAlbums = await artistService.getArtistAlbums(artist.id, 7);
     return res.json({
       id: album.id,
       albumName: album.name,
@@ -74,7 +81,10 @@ export const getAlbumData = async (
         username: user.username,
         picture: `${config.domain}${user.picture}`,
         count: user.count
-      }))
+      })),
+      otherAlbums: otherAlbums.filter(
+        (otherAlbum) => otherAlbum.id !== album.id
+      )
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {

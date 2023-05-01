@@ -24,6 +24,7 @@ type TopTrack = {
   count: number;
   trackSlug: string;
   albumSlug: string;
+  artistSlug: string;
 };
 
 type TopAlbum = {
@@ -31,6 +32,13 @@ type TopAlbum = {
   albumName: string;
   artwork: string;
   count: number;
+  albumSlug: string;
+};
+
+type Album = {
+  id: string;
+  albumName: string;
+  artwork: string;
   albumSlug: string;
 };
 
@@ -144,10 +152,11 @@ const artistService = (() => {
       SELECT
         tracks.id,
         tracks.name as trackName,
-        tracks.slug as trackSlug,
         tracks.duration,
         albums.artwork,
+        tracks.slug as trackSlug,
         albums.slug as albumSlug,
+        artists.slug as artistSlug,
         COUNT(tracks.id) as count
       FROM
         user_track_histories
@@ -209,7 +218,42 @@ const artistService = (() => {
     return topAlbums as TopAlbum[];
   };
 
-  return { addArtist, getTopListeners, getTopTracks, getTopAlbums };
+  /**
+   * Returns albums by an artist.
+   * @param albumId Id of the album.
+   * @param limit Maximum number of albums to return.
+   */
+  const getArtistAlbums = async (
+    artistId: string,
+    limit: number
+  ): Promise<Album[]> => {
+    const albums = await sequelize.query(
+      `
+      SELECT
+        albums.id,
+        albums.name as albumName,
+        albums.slug as albumSlug,
+        albums.artwork
+      FROM
+        albums
+      WHERE albums.artist_id = :artist_id
+      LIMIT :limit;
+      `,
+      {
+        replacements: { artist_id: artistId, limit: limit },
+        type: QueryTypes.SELECT
+      }
+    );
+    return albums as Album[];
+  };
+
+  return {
+    addArtist,
+    getTopListeners,
+    getTopTracks,
+    getTopAlbums,
+    getArtistAlbums
+  };
 })();
 
 export default artistService;
