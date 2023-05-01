@@ -1,11 +1,16 @@
 import { NextFunction, Request, Response } from 'express';
-import { UniqueConstraintError } from 'sequelize';
-import genreDb from '../data_access/genre.data.js';
-import spotifyApi from '../data_access/spotify.data.js';
-import userDb from '../data_access/user.data.js';
+import { RecordNotFoundError } from '../data_access/errors.js';
+import trackDb from '../data_access/track.data.js';
+import albumDb from '../data_access/album.data.js';
+import artistDb from '../data_access/artist.data.js';
+import trackService from '../services/track.service.js';
+import config from '../config/general.config.js';
+import albumService from '../services/album.service.js';
+import artistService from '../services/artist.service.js';
 
 /**
- * Controller for the tracks/:id endpoint.
+ * Controller for the GET tracks/:trackSlug endpoint.
+ * Returns general information about the track with the given slug.
  * @param req Express Request object
  * @param res Express Response object
  * @param next next middleware function
@@ -16,45 +21,91 @@ export const getTrack = async (
   next: NextFunction
 ) => {
   try {
-    // const accessToken =
-    //   'BQC44W6iWJtFSV9Kl3w_J0gPKKhfQ6FkKS-wyfaURSwMnZsRF3ACt4lLY1a64fshCc5SiOQQgkEpC5pK24Dx9dxwtvpG0lZ7UHfpwZlzrAK9RNbgbGGK_7lWJDlrLkbX_MKgms09J1_WkFhOzFSTYsr2AGWEE2TfPiG5bFh-fv6X5uXwDJPoIx7yMf8';
-    // const trackId = '5kqIPrATaCc2LqxVWzQGbk';
-    // const data = await spotifyApi.getTrack(accessToken, trackId);
-    // const data = await spotifyApi.getRecentlyPlayed(accessToken, 1, 30);
-    // const data = await spotifyApi.getCurrentlyPlayingTrack(accessToken);
-    // console.log(
-    //   await userDb.createUser({
-    //     id: 1234,
-    //     username: 'username2',
-    //     spotifyAccessToken: 'token1',
-    //     spotifyRefreshToken: 'token1',
-    //     spotifyTokenExpires: new Date(Date.now())
-    //   })
-    // );
-    // await userDb.getUserById('1234');
-    // console.log(await userDb.updateUser('123', { username: 'username2' }));
-    // await genreDb.bulkCreateGenres([
-    //   { id: '1', name: 'genre 1' },
-    //   { id: '2', name: 'genre 2' },
-    //   { id: '3', name: 'genre 3' }
-    // ]);
-    const genres = await genreDb.getGenres({});
-    console.log(genres.count);
-    // console.log(genres.rows[0]);
-    console.log(genres.rows);
-    return res.json({});
+    const { trackSlug } = req.params;
+    const track = await trackDb.getTrackBySlug(trackSlug);
+    const album = await albumDb.getAlbumById(track.albumId);
+    const artist = await artistDb.getArtistById(album.artistId!);
+    return res.json({
+      id: track.id,
+      name: track.name,
+      artwork: album.artwork,
+      duration: track.duration,
+      albumName: album.name,
+      albumSlug: album.slug,
+      artistName: artist.name,
+      artistSlug: artist.slug
+    });
   } catch (error) {
-    console.log('--------------ERROR--------------');
-    if (error instanceof UniqueConstraintError) {
-      if (error.errors[0].path === 'username') {
-        console.log('duplicate username');
-      }
-      if (error.errors[0].path === 'PRIMARY') {
-        console.log('duplicate id');
-      }
-    } else {
-      console.error(error);
+    if (error instanceof RecordNotFoundError) {
+      return res.status(404).json({
+        error: {
+          status: 404,
+          message: error.message
+        }
+      });
     }
-    return res.json({ error });
+    return next(error);
+  }
+};
+
+/**
+ * Controller for the GET tracks/:trackSlug endpoint.
+ * Returns complete streaming data about the track with the given slug.
+ * @param req Express Request object
+ * @param res Express Response object
+ * @param next next middleware function
+ */
+export const getTrackData = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { trackSlug } = req.params;
+    const track = await trackDb.getTrackBySlug(trackSlug);
+    const album = await albumDb.getAlbumById(track.albumId);
+    const artist = await artistDb.getArtistById(album.artistId!);
+    const topListeners = await trackService.getTopListeners(track.id, 10);
+    // We only want 5 other albums, but the results may include the current
+    // track, so we get 6 and filter out the current track if it exists.
+    const otherTracks = await artistService.getArtistRandomTracks(artist.id, 6);
+    return res.json({
+      id: track.id,
+      name: track.name,
+      album: {
+        id: album.id,
+        name: album.name,
+        artwork: album.artwork,
+        trackNum: album.trackNum,
+        releaseYear: album.releaseYear,
+        duration: await albumService.getAlbumDuration(album.id),
+        slug: album.slug
+      },
+      artist: {
+        id: artist.id,
+        name: artist.name,
+        slug: artist.slug,
+        artwork: artist.image
+      },
+      topListeners: topListeners.map((user) => ({
+        id: user.id,
+        username: user.username,
+        picture: `${config.domain}${user.picture}`,
+        count: user.count
+      })),
+      otherTracks: otherTracks.filter(
+        (otherTrack) => otherTrack.id !== track.id
+      )
+    });
+  } catch (error) {
+    if (error instanceof RecordNotFoundError) {
+      return res.status(404).json({
+        error: {
+          status: 404,
+          message: error.message
+        }
+      });
+    }
+    return next(error);
   }
 };

@@ -50,6 +50,20 @@ const trackDb = (() => {
   };
 
   /**
+   * Retrieves a Track record by its url parameter slug.
+   * @param slug slug of the track to retrieve.
+   * @returns The requested track record.
+   * @throws RecordNotFoundError if no genre with the given Id exists.
+   */
+  const getTrackBySlug = async (slug: string): Promise<ITrack> => {
+    const track = await models.track.findOne({ where: { slug: slug } });
+    if (track === null) {
+      throw new RecordNotFoundError('Track', `Track ${slug} not found.`);
+    }
+    return track.toJSON();
+  };
+
+  /**
    * Retrieves track records for the query and the number of records that
    * match the query.
    * @param query Search query to execute.
@@ -107,6 +121,7 @@ const trackDb = (() => {
     createTrack,
     bulkCreateTracks,
     getTrackById,
+    getTrackBySlug,
     getTracks,
     updateTrack,
     deleteTrack

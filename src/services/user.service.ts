@@ -64,8 +64,8 @@ const userService = (() => {
     ) {
       throw new AccessTokenError('User must authenticate with Spotify');
     }
-    // Subtract 2 minutes from the current time to account for any latency.
-    const currentDatetime = new Date(Date.now() - 120 * 1000);
+    // Add 2 minutes to the current time to account for any latency.
+    const currentDatetime = new Date(Date.now() + 120 * 1000);
     if (user.spotifyTokenExpires > currentDatetime) {
       return user.spotifyAccessToken;
     }
@@ -182,8 +182,11 @@ const userService = (() => {
         SELECT 
           tracks.id, 
           tracks.name as trackName, 
+          tracks.slug as trackSlug,
           albums.artwork, 
+          albums.slug as albumSlug,
           artists.name as artistName,
+          artists.slug as artistSlug,   
           COUNT(tracks.id) AS count
         FROM 
           user_track_histories
@@ -202,7 +205,6 @@ const userService = (() => {
         type: QueryTypes.SELECT
       }
     );
-    console.log(topTracks);
     return topTracks;
   };
 
@@ -223,7 +225,9 @@ const userService = (() => {
         albums.id, 
         albums.name as albumName, 
         albums.artwork, 
+        albums.slug as albumSlug,
         artists.name as artistName,
+        artists.slug as artistSlug,   
         COUNT(albums.id) AS count
       FROM 
         user_track_histories
@@ -261,7 +265,8 @@ const userService = (() => {
       SELECT 
         artists.id,
         artists.name as artistName,
-        artists.image as artwork,        
+        artists.image as artwork,
+        artists.slug as artistSlug,        
         COUNT(artists.id) AS count
       FROM 
         user_track_histories

@@ -3,6 +3,54 @@ import albumDb from '../data_access/album.data.js';
 import artistDb from '../data_access/artist.data.js';
 import spotifyApi, { SpotifyArtist } from '../data_access/spotify.data.js';
 import albumService from './album.service.js';
+import { sequelize } from '../models/_index.js';
+import { QueryTypes } from 'sequelize';
+import trackDb from '../data_access/track.data.js';
+
+/**
+ * Define types used in this file.
+ */
+type TopListener = {
+  id: string;
+  username: string;
+  picture: string;
+  count: number;
+};
+
+type TopTrack = {
+  id: string;
+  trackName: string;
+  duration: string;
+  artwork: string;
+  count: number;
+  trackSlug: string;
+  albumSlug: string;
+  artistSlug: string;
+};
+
+type TopAlbum = {
+  id: string;
+  albumName: string;
+  artwork: string;
+  count: number;
+  albumSlug: string;
+};
+
+type Album = {
+  id: string;
+  albumName: string;
+  artwork: string;
+  albumSlug: string;
+};
+
+type Track = {
+  id: string;
+  name: string;
+  artwork: string;
+  trackSlug: string;
+  albumSlug: string;
+  artistSlug: string;
+};
 
 /**
  * Handles all artist logic.
@@ -60,7 +108,197 @@ const artistService = (() => {
     }
   };
 
-  return { addArtist };
+  /**
+   * Returns the users with the most streams of the artist.
+   * @param artistId Id of the artist.
+   * @param limit Maximum number of users to return.
+   */
+  const getTopListeners = async (
+    artistId: string,
+    limit: number
+  ): Promise<TopListener[]> => {
+    const topListeners = await sequelize.query(
+      `
+      SELECT
+        users.id,
+        users.username,
+        users.picture,
+        COUNT(users.id) as count
+      FROM
+        user_track_histories
+      LEFT JOIN
+        users ON user_track_histories.user_id = users.id
+      LEFT JOIN 
+        tracks ON user_track_histories.track_id = tracks.id
+      LEFT JOIN 
+        albums ON tracks.album_id = albums.id
+      LEFT JOIN 
+        artists ON albums.artist_id = artists.id
+      WHERE artists.id = :artist_id
+      GROUP BY users.id
+      ORDER BY count DESC
+      LIMIT :limit;
+      `,
+      {
+        replacements: { artist_id: artistId, limit: limit },
+        type: QueryTypes.SELECT
+      }
+    );
+    return topListeners as TopListener[];
+  };
+
+  /**
+   * Returns an artists most streamed tracks. Top tracks are based on the
+   * number of of streams by soundTrack users.
+   * @param artistId Id of the artist.
+   * @param limit Maximum number of tracks to return.
+   */
+  const getTopTracks = async (
+    artistId: string,
+    limit: number
+  ): Promise<TopTrack[]> => {
+    const topTracks = await sequelize.query(
+      `
+      SELECT
+        tracks.id,
+        tracks.name as trackName,
+        tracks.duration,
+        albums.artwork,
+        tracks.slug as trackSlug,
+        albums.slug as albumSlug,
+        artists.slug as artistSlug,
+        COUNT(tracks.id) as count
+      FROM
+        user_track_histories
+      LEFT JOIN 
+        tracks ON user_track_histories.track_id = tracks.id
+      LEFT JOIN 
+        albums ON tracks.album_id = albums.id
+      LEFT JOIN 
+        artists ON albums.artist_id = artists.id
+      WHERE artists.id = :artist_id
+      GROUP BY tracks.id
+      ORDER BY count DESC
+      LIMIT :limit;
+      `,
+      {
+        replacements: { artist_id: artistId, limit: limit },
+        type: QueryTypes.SELECT
+      }
+    );
+    return topTracks as TopTrack[];
+  };
+
+  /**
+   * Returns an artists most streamed albums. Top albums are based on the
+   * number of of streams by soundTrack users.
+   * @param artistId Id of the artist.
+   * @param limit Maximum number of albums to return.
+   */
+  const getTopAlbums = async (
+    artistId: string,
+    limit: number
+  ): Promise<TopAlbum[]> => {
+    const topAlbums = await sequelize.query(
+      `
+      SELECT
+        albums.id,
+        albums.name as albumName,
+        albums.artwork,
+        albums.slug as albumSlug,
+        COUNT(albums.id) as count
+      FROM
+        user_track_histories
+      LEFT JOIN 
+        tracks ON user_track_histories.track_id = tracks.id
+      LEFT JOIN 
+        albums ON tracks.album_id = albums.id
+      LEFT JOIN 
+        artists ON albums.artist_id = artists.id
+      WHERE artists.id = :artist_id
+      GROUP BY albums.id
+      ORDER BY count DESC
+      LIMIT :limit;
+      `,
+      {
+        replacements: { artist_id: artistId, limit: limit },
+        type: QueryTypes.SELECT
+      }
+    );
+    return topAlbums as TopAlbum[];
+  };
+
+  /**
+   * Returns a random list of tracks by an artist.
+   * @param albumId Id of the album.
+   * @param limit Maximum number of albums to return.
+   */
+  const getArtistRandomTracks = async (artistId: string, limit: number) => {
+    const tracks = await sequelize.query(
+      `
+      SELECT
+        tracks.id,
+        tracks.name,
+        albums.artwork,
+        tracks.slug as trackSlug,
+        albums.slug as albumSlug,
+        artists.slug as artistSlug
+      FROM
+        tracks
+      LEFT JOIN
+        albums ON tracks.album_id = albums.id
+      LEFT JOIN
+        artists ON albums.artist_id = artists.id
+      WHERE artists.id = :artist_id
+      ORDER BY rand()
+      LIMIT :limit;
+      `,
+      {
+        replacements: { artist_id: artistId, limit: limit },
+        type: QueryTypes.SELECT
+      }
+    );
+    return tracks as Track[];
+  };
+
+  /**
+   * Returns a random list of albums by an artist.
+   * @param albumId Id of the album.
+   * @param limit Maximum number of albums to return.
+   */
+  const getArtistRandomAlbums = async (
+    artistId: string,
+    limit: number
+  ): Promise<Album[]> => {
+    const albums = await sequelize.query(
+      `
+      SELECT
+        albums.id,
+        albums.name as albumName,
+        albums.slug as albumSlug,
+        albums.artwork
+      FROM
+        albums
+      WHERE albums.artist_id = :artist_id
+      ORDER BY rand()
+      LIMIT :limit;
+      `,
+      {
+        replacements: { artist_id: artistId, limit: limit },
+        type: QueryTypes.SELECT
+      }
+    );
+    return albums as Album[];
+  };
+
+  return {
+    addArtist,
+    getTopListeners,
+    getTopTracks,
+    getTopAlbums,
+    getArtistRandomTracks,
+    getArtistRandomAlbums
+  };
 })();
 
 export default artistService;

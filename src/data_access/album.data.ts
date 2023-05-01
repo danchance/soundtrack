@@ -46,6 +46,20 @@ const albumDb = (() => {
   };
 
   /**
+   * Retrieves an Album record by its url parameter slug.
+   * @param slug slug of the album to retrieve.
+   * @returns The requested album record.
+   * @throws RecordNotFoundError if no genre with the given Id exists.
+   */
+  const getAlbumBySlug = async (slug: string): Promise<IAlbum> => {
+    const album = await models.album.findOne({ where: { slug: slug } });
+    if (album === null) {
+      throw new RecordNotFoundError('Album', `Album ${slug} not found.`);
+    }
+    return album.toJSON();
+  };
+
+  /**
    * Retrieves album records for the query and the number of records that
    * match the query.
    * @param query Search query to execute.
@@ -110,6 +124,7 @@ const albumDb = (() => {
     createAlbum,
     bulkCreateAlbums,
     getAlbumById,
+    getAlbumBySlug,
     getAlbums,
     updateAlbum,
     deleteAlbum

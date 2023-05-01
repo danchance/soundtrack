@@ -1,4 +1,5 @@
 import { Sequelize, DataTypes, ModelDefined, Model } from 'sequelize';
+import slugify from '../utils/slugify.js';
 
 /**
  * Define interface for Artist attributes.
@@ -7,20 +8,14 @@ export interface IArtist {
   id: string;
   name: string;
   image: string;
+  slug?: string;
 }
-
-/**
- * All attributes are requrired at model creation.
- */
-type ArtistCreationAttributes = IArtist;
 
 /**
  * Sequelize model definition for Artist table.
  */
-export default (
-  sequelize: Sequelize
-): ModelDefined<IArtist, ArtistCreationAttributes> => {
-  const Artist = sequelize.define<Model<IArtist, ArtistCreationAttributes>>(
+export default (sequelize: Sequelize): ModelDefined<IArtist, IArtist> => {
+  const Artist = sequelize.define<Model<IArtist>>(
     'Artist',
     {
       id: {
@@ -35,11 +30,23 @@ export default (
       image: {
         type: DataTypes.STRING,
         allowNull: false
-      }
+      },
+      slug: DataTypes.STRING
     },
     {
       underscored: true
     }
   );
+
+  Artist.addHook('beforeCreate', async (artist, options) => {
+    artist.dataValues.slug = slugify(artist.dataValues.name);
+  });
+
+  Artist.addHook('beforeBulkCreate', async (artists, options) => {
+    for (const artist of artists) {
+      artist.dataValues.slug = slugify(artist.dataValues.name);
+    }
+  });
+
   return Artist;
 };

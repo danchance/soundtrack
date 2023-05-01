@@ -5,6 +5,7 @@ import {
   Model,
   ForeignKey
 } from 'sequelize';
+import slugify from '../utils/slugify.js';
 
 /**
  * Define interface for Track attributes.
@@ -14,20 +15,14 @@ export interface ITrack {
   name: string;
   duration: number;
   albumId: ForeignKey<string>;
+  slug?: string;
 }
-
-/**
- * All attributes are requrired at model creation.
- */
-type TrackCreationAttributes = ITrack;
 
 /**
  * Sequelize model definition for Track table.
  */
-export default (
-  sequelize: Sequelize
-): ModelDefined<ITrack, TrackCreationAttributes> => {
-  const Track = sequelize.define<Model<ITrack, TrackCreationAttributes>>(
+export default (sequelize: Sequelize): ModelDefined<ITrack, ITrack> => {
+  const Track = sequelize.define<Model<ITrack>>(
     'Track',
     {
       id: {
@@ -53,11 +48,23 @@ export default (
           model: 'albums',
           key: 'id'
         }
-      }
+      },
+      slug: DataTypes.STRING
     },
     {
       underscored: true
     }
   );
+
+  Track.addHook('beforeCreate', async (track, options) => {
+    track.dataValues.slug = slugify(track.dataValues.name);
+  });
+
+  Track.addHook('beforeBulkCreate', async (tracks, options) => {
+    for (const track of tracks) {
+      track.dataValues.slug = slugify(track.dataValues.name);
+    }
+  });
+
   return Track;
 };
