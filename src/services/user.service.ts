@@ -209,16 +209,34 @@ const userService = (() => {
   };
 
   /**
-   * Calculates the users top albums based on their Spotify streaming history.
-   * A top album is calculated by totaling the number of times the tracks from an album
-   * have been streamed.
+   * Calculates the users top albums, in the specified timeframe, based on their
+   * Spotify streaming history. A top album is calculated by totaling the number
+   * of times the tracks from an album have been streamed.
    * @param userId Id of the user.
    * @param limit Number of albums to return.
    */
   const getTopAlbums = async (
     userId: string,
-    limit: number
+    limit: number,
+    timeframe: Timeframe
   ): Promise<TopItems> => {
+    // Calculate the start date to use for the timeframe filter.
+    let datetime = new Date();
+    datetime.setHours(0, 0, 0, 0);
+    switch (timeframe) {
+      case Timeframe.ALL:
+        datetime.setFullYear(2022);
+        break;
+      case Timeframe.YEAR:
+        datetime.setFullYear(datetime.getFullYear() - 1);
+        break;
+      case Timeframe.MONTH:
+        datetime.setMonth(datetime.getMonth() - 1);
+        break;
+      case Timeframe.WEEK:
+        datetime.setDate(datetime.getDate() - 1);
+        break;
+    }
     const topAlbums: TopItems = await sequelize.query(
       `
       SELECT 
@@ -237,12 +255,12 @@ const userService = (() => {
         albums ON tracks.album_id = albums.id
       LEFT JOIN 
         artists ON albums.artist_id = artists.id
-      WHERE user_id = :user_id
+      WHERE user_id = :user_id AND user_track_histories.played_at > :datetime
       GROUP BY albums.id
       ORDER BY count DESC
       LIMIT :limit;`,
       {
-        replacements: { user_id: userId, limit: limit },
+        replacements: { user_id: userId, datetime: datetime, limit: limit },
         type: QueryTypes.SELECT
       }
     );

@@ -7,6 +7,7 @@ import userDb from '../data_access/user.data.js';
 import userService from '../services/user.service.js';
 import { UploadedFile } from 'express-fileupload';
 import config from '../config/general.config.js';
+import { Timeframe } from '../models/user.model.js';
 
 /**
  * Controller for the GET users/:id endpoint.
@@ -77,7 +78,11 @@ export const getUserProfile = async (
     }
     const recentlyPlayed = await userService.updateTrackHistory(user.id, 10);
     const topTracks = await userService.getTopTracks(user.id, 10);
-    const topAlbums = await userService.getTopAlbums(user.id, 10);
+    const topAlbums = await userService.getTopAlbums(
+      user.id,
+      10,
+      user.topAlbumsTimeframe!
+    );
     const topArtists = await userService.getTopArtists(user.id, 10);
     return res.json({
       recentTracks: recentlyPlayed,
@@ -268,11 +273,18 @@ export const getUserAlbums = async (
         }
       });
     }
-    const topAlbums = await userService.getTopAlbums(user.id, 10);
+    // Use the timeframe from the query param if it exists, otherwise use the
+    // timeframe setting for the user.
+    let timeframe = user.topAlbumsTimeframe!;
+    if (req.query.timeframe) {
+      //TODO: Validate the timeframe
+      timeframe = req.query.timeframe as Timeframe;
+    }
+    const topAlbums = await userService.getTopAlbums(user.id, 10, timeframe);
     return res.json({
       albums: topAlbums,
       topAlbumsStyle: user.topAlbumsStyle,
-      topAlbumsTimeframe: user.topAlbumsTimeframe
+      topAlbumsTimeframe: timeframe
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
@@ -360,7 +372,7 @@ export const getUserCurrentTrack = async (
       });
     }
     const currentTrack = await userService.getCurrentlyPlayingTrack(userId);
-    return res.json({ track: currentTrack });
+    return res.json({ ...currentTrack });
   } catch (error) {
     if (error instanceof AccessTokenError) {
       return res.status(401).json({
