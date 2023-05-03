@@ -10,6 +10,7 @@ import auth0API from '../data_access/auth0.data.js';
 import { StyleType, Timeframe } from '../models/user.model.js';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs';
+import getTimeframeStartDate from '../utils/timeframe.js';
 
 /**
  * Type used to represent a users top tracks, albums or artists.
@@ -175,8 +176,10 @@ const userService = (() => {
    */
   const getTopTracks = async (
     userId: string,
-    limit: number
+    limit: number,
+    timeframe: Timeframe
   ): Promise<TopItems> => {
+    let datetime = getTimeframeStartDate(timeframe);
     const topTracks: TopItems = await sequelize.query(
       `
         SELECT 
@@ -201,7 +204,7 @@ const userService = (() => {
         ORDER BY count DESC
         LIMIT :limit;`,
       {
-        replacements: { user_id: userId, limit: limit },
+        replacements: { user_id: userId, datetime: datetime, limit: limit },
         type: QueryTypes.SELECT
       }
     );
@@ -220,23 +223,7 @@ const userService = (() => {
     limit: number,
     timeframe: Timeframe
   ): Promise<TopItems> => {
-    // Calculate the start date to use for the timeframe filter.
-    let datetime = new Date();
-    datetime.setHours(0, 0, 0, 0);
-    switch (timeframe) {
-      case Timeframe.ALL:
-        datetime.setFullYear(2022);
-        break;
-      case Timeframe.YEAR:
-        datetime.setFullYear(datetime.getFullYear() - 1);
-        break;
-      case Timeframe.MONTH:
-        datetime.setMonth(datetime.getMonth() - 1);
-        break;
-      case Timeframe.WEEK:
-        datetime.setDate(datetime.getDate() - 1);
-        break;
-    }
+    let datetime = getTimeframeStartDate(timeframe);
     const topAlbums: TopItems = await sequelize.query(
       `
       SELECT 
@@ -276,8 +263,10 @@ const userService = (() => {
    */
   const getTopArtists = async (
     userId: string,
-    limit: number
+    limit: number,
+    timeframe: Timeframe
   ): Promise<TopItems> => {
+    let datetime = getTimeframeStartDate(timeframe);
     const topArtists: TopItems = await sequelize.query(
       `
       SELECT 
@@ -294,12 +283,12 @@ const userService = (() => {
         albums ON tracks.album_id = albums.id
       LEFT JOIN 
         artists ON albums.artist_id = artists.id
-      WHERE user_id = :user_id
+      WHERE user_id = :user_id AND user_track_histories.played_at > :datetime
       GROUP BY artists.id
       ORDER BY count DESC
       LIMIT :limit;`,
       {
-        replacements: { user_id: userId, limit: limit },
+        replacements: { user_id: userId, datetime: datetime, limit: limit },
         type: QueryTypes.SELECT
       }
     );

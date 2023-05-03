@@ -76,14 +76,36 @@ export const getUserProfile = async (
         }
       });
     }
+    // Use the timeframes from the query params if they exist, otherwise use the
+    // timeframe settings for the user.
+    let tracksTimeframe = user.topTracksTimeframe!;
+    let albumsTimeframe = user.topAlbumsTimeframe!;
+    let artistsTimeframe = user.topArtistsTimeframe!;
+    if (req.query['tracks-timeframe']) {
+      tracksTimeframe = req.query['tracks-timeframe'] as Timeframe;
+    }
+    if (req.query['albums-timeframe']) {
+      albumsTimeframe = req.query['albums-timeframe'] as Timeframe;
+    }
+    if (req.query['artists-timeframe']) {
+      artistsTimeframe = req.query['artists-timeframe'] as Timeframe;
+    }
     const recentlyPlayed = await userService.updateTrackHistory(user.id, 10);
-    const topTracks = await userService.getTopTracks(user.id, 10);
+    const topTracks = await userService.getTopTracks(
+      user.id,
+      10,
+      tracksTimeframe
+    );
     const topAlbums = await userService.getTopAlbums(
       user.id,
       10,
-      user.topAlbumsTimeframe!
+      albumsTimeframe
     );
-    const topArtists = await userService.getTopArtists(user.id, 10);
+    const topArtists = await userService.getTopArtists(
+      user.id,
+      10,
+      artistsTimeframe
+    );
     return res.json({
       recentTracks: recentlyPlayed,
       tracks: topTracks,
@@ -228,7 +250,14 @@ export const getUserTracks = async (
         }
       });
     }
-    const topTracks = await userService.getTopTracks(user.id, 10);
+    // Use the timeframe from the query param if it exists, otherwise use the
+    // timeframe setting for the user.
+    let timeframe = user.topTracksTimeframe!;
+    if (req.query.timeframe) {
+      //TODO: Validate the timeframe
+      timeframe = req.query.timeframe as Timeframe;
+    }
+    const topTracks = await userService.getTopTracks(user.id, 10, timeframe);
     return res.json({
       tracks: topTracks,
       topTracksStyle: user.topTracksStyle,
@@ -325,7 +354,14 @@ export const getUserArtists = async (
         }
       });
     }
-    const topArtists = await userService.getTopArtists(user.id, 10);
+    // Use the timeframe from the query param if it exists, otherwise use the
+    // timeframe setting for the user.
+    let timeframe = user.topArtistsTimeframe!;
+    if (req.query.timeframe) {
+      //TODO: Validate the timeframe
+      timeframe = req.query.timeframe as Timeframe;
+    }
+    const topArtists = await userService.getTopArtists(user.id, 10, timeframe);
     return res.json({
       artists: topArtists,
       topArtistsStyle: user.topArtistsStyle,
