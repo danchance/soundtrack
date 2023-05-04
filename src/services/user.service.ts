@@ -316,6 +316,18 @@ const userService = (() => {
   };
 
   /**
+   * Gets the users total number of streamed tracks for the user.
+   * @param userId Id of the user.
+   * @returns Total number of streams for the user.
+   */
+  const getStreamCount = async (userId: string): Promise<number> => {
+    const streamCount = await userTrackHistoryDb.getUserTracks({
+      where: { userId: userId }
+    });
+    return streamCount.count;
+  };
+
+  /**
    * Updates the users settings. There are 3 different scenarios, depending on
    * the setting:
    *  1) Setting is stored in the local database.
@@ -460,6 +472,7 @@ const userService = (() => {
     getTopAlbums,
     getTopArtists,
     getCurrentlyPlayingTrack,
+    getStreamCount,
     updateUserSettings,
     updateProfilePicture,
     deleteSpotifyConnection,

@@ -16,7 +16,7 @@ import { Timeframe } from '../models/user.model.js';
  * @param res Express Response object.
  * @param next next middleware function.
  */
-export const getUser = async (
+export const getUserInfo = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -30,7 +30,8 @@ export const getUser = async (
         id: user.id,
         username: user.username,
         image: `${config.domain}${user.picture}`,
-        createdAt: user.createdAt
+        createdAt: user.createdAt,
+        streamCount: await userService.getStreamCount(user.id)
       }
     });
   } catch (error) {
