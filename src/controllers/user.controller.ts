@@ -58,7 +58,7 @@ export const getUser = async (
  * @param res Express Response object.
  * @param next next middleware function.
  */
-export const getUserProfile = async (
+export const getUserTrackHistory = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -76,47 +76,9 @@ export const getUserProfile = async (
         }
       });
     }
-    // Use the timeframes from the query params if they exist, otherwise use the
-    // timeframe settings for the user.
-    let tracksTimeframe = user.topTracksTimeframe!;
-    let albumsTimeframe = user.topAlbumsTimeframe!;
-    let artistsTimeframe = user.topArtistsTimeframe!;
-    if (req.query['tracks-timeframe']) {
-      tracksTimeframe = req.query['tracks-timeframe'] as Timeframe;
-    }
-    if (req.query['albums-timeframe']) {
-      albumsTimeframe = req.query['albums-timeframe'] as Timeframe;
-    }
-    if (req.query['artists-timeframe']) {
-      artistsTimeframe = req.query['artists-timeframe'] as Timeframe;
-    }
     const recentlyPlayed = await userService.updateTrackHistory(user.id, 10);
-    const topTracks = await userService.getTopTracks(
-      user.id,
-      10,
-      tracksTimeframe
-    );
-    const topAlbums = await userService.getTopAlbums(
-      user.id,
-      10,
-      albumsTimeframe
-    );
-    const topArtists = await userService.getTopArtists(
-      user.id,
-      10,
-      artistsTimeframe
-    );
     return res.json({
-      recentTracks: recentlyPlayed,
-      tracks: topTracks,
-      albums: topAlbums,
-      artists: topArtists,
-      topTracksStyle: user.topTracksStyle,
-      topTracksTimeframe: user.topTracksTimeframe,
-      topAlbumsStyle: user.topAlbumsStyle,
-      topAlbumsTimeframe: user.topAlbumsTimeframe,
-      topArtistsStyle: user.topArtistsStyle,
-      topArtistsTimeframe: user.topArtistsTimeframe
+      recentTracks: recentlyPlayed
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
@@ -260,8 +222,8 @@ export const getUserTracks = async (
     const topTracks = await userService.getTopTracks(user.id, 10, timeframe);
     return res.json({
       tracks: topTracks,
-      topTracksStyle: user.topTracksStyle,
-      topTracksTimeframe: user.topTracksTimeframe
+      style: user.topTracksStyle,
+      timeframe: timeframe
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
@@ -312,8 +274,8 @@ export const getUserAlbums = async (
     const topAlbums = await userService.getTopAlbums(user.id, 10, timeframe);
     return res.json({
       albums: topAlbums,
-      topAlbumsStyle: user.topAlbumsStyle,
-      topAlbumsTimeframe: timeframe
+      style: user.topAlbumsStyle,
+      timeframe: timeframe
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
@@ -364,8 +326,8 @@ export const getUserArtists = async (
     const topArtists = await userService.getTopArtists(user.id, 10, timeframe);
     return res.json({
       artists: topArtists,
-      topArtistsStyle: user.topArtistsStyle,
-      topArtistsTimeframe: user.topArtistsTimeframe
+      style: user.topArtistsStyle,
+      timeframe: timeframe
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {

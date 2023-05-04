@@ -20,7 +20,7 @@ const getTimeframeStartDate = (timeframe: Timeframe): Date => {
       datetime.setMonth(datetime.getMonth() - 1);
       break;
     case Timeframe.WEEK:
-      datetime.setDate(datetime.getDate() - 1);
+      datetime.setDate(datetime.getDate() - 7);
       break;
   }
   return datetime;

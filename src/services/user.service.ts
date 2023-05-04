@@ -199,7 +199,7 @@ const userService = (() => {
           albums ON tracks.album_id = albums.id
         LEFT JOIN 
           artists ON albums.artist_id = artists.id
-        WHERE user_id = :user_id
+        WHERE user_id = :user_id AND user_track_histories.played_at > :datetime
         GROUP BY tracks.id
         ORDER BY count DESC
         LIMIT :limit;`,

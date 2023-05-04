@@ -24,7 +24,7 @@ router.delete('/spotify', checkJwt, userController.deleteSpotifyConnection);
 
 router.get('/:user/info', userController.getUser);
 
-router.get('/:user/profile', userController.getUserProfile);
+router.get('/:user/track-history', userController.getUserTrackHistory);
 
 router.get('/:user/history', userController.getUserHistory);
 
