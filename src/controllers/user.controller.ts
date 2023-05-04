@@ -7,6 +7,7 @@ import userDb from '../data_access/user.data.js';
 import userService from '../services/user.service.js';
 import { UploadedFile } from 'express-fileupload';
 import config from '../config/general.config.js';
+import { Timeframe } from '../models/user.model.js';
 
 /**
  * Controller for the GET users/:id endpoint.
@@ -15,7 +16,7 @@ import config from '../config/general.config.js';
  * @param res Express Response object.
  * @param next next middleware function.
  */
-export const getUser = async (
+export const getUserInfo = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -29,7 +30,8 @@ export const getUser = async (
         id: user.id,
         username: user.username,
         image: `${config.domain}${user.picture}`,
-        createdAt: user.createdAt
+        createdAt: user.createdAt,
+        streamCount: await userService.getStreamCount(user.id)
       }
     });
   } catch (error) {
@@ -57,7 +59,7 @@ export const getUser = async (
  * @param res Express Response object.
  * @param next next middleware function.
  */
-export const getUserProfile = async (
+export const getUserTrackHistory = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -76,20 +78,8 @@ export const getUserProfile = async (
       });
     }
     const recentlyPlayed = await userService.updateTrackHistory(user.id, 10);
-    const topTracks = await userService.getTopTracks(user.id, 10);
-    const topAlbums = await userService.getTopAlbums(user.id, 10);
-    const topArtists = await userService.getTopArtists(user.id, 10);
     return res.json({
-      recentTracks: recentlyPlayed,
-      tracks: topTracks,
-      albums: topAlbums,
-      artists: topArtists,
-      topTracksStyle: user.topTracksStyle,
-      topTracksTimeframe: user.topTracksTimeframe,
-      topAlbumsStyle: user.topAlbumsStyle,
-      topAlbumsTimeframe: user.topAlbumsTimeframe,
-      topArtistsStyle: user.topArtistsStyle,
-      topArtistsTimeframe: user.topArtistsTimeframe
+      recentTracks: recentlyPlayed
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
@@ -223,11 +213,18 @@ export const getUserTracks = async (
         }
       });
     }
-    const topTracks = await userService.getTopTracks(user.id, 10);
+    // Use the timeframe from the query param if it exists, otherwise use the
+    // timeframe setting for the user.
+    let timeframe = user.topTracksTimeframe!;
+    if (req.query.timeframe) {
+      //TODO: Validate the timeframe
+      timeframe = req.query.timeframe as Timeframe;
+    }
+    const topTracks = await userService.getTopTracks(user.id, 10, timeframe);
     return res.json({
       tracks: topTracks,
-      topTracksStyle: user.topTracksStyle,
-      topTracksTimeframe: user.topTracksTimeframe
+      style: user.topTracksStyle,
+      timeframe: timeframe
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
@@ -268,11 +265,18 @@ export const getUserAlbums = async (
         }
       });
     }
-    const topAlbums = await userService.getTopAlbums(user.id, 10);
+    // Use the timeframe from the query param if it exists, otherwise use the
+    // timeframe setting for the user.
+    let timeframe = user.topAlbumsTimeframe!;
+    if (req.query.timeframe) {
+      //TODO: Validate the timeframe
+      timeframe = req.query.timeframe as Timeframe;
+    }
+    const topAlbums = await userService.getTopAlbums(user.id, 10, timeframe);
     return res.json({
       albums: topAlbums,
-      topAlbumsStyle: user.topAlbumsStyle,
-      topAlbumsTimeframe: user.topAlbumsTimeframe
+      style: user.topAlbumsStyle,
+      timeframe: timeframe
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
@@ -313,11 +317,18 @@ export const getUserArtists = async (
         }
       });
     }
-    const topArtists = await userService.getTopArtists(user.id, 10);
+    // Use the timeframe from the query param if it exists, otherwise use the
+    // timeframe setting for the user.
+    let timeframe = user.topArtistsTimeframe!;
+    if (req.query.timeframe) {
+      //TODO: Validate the timeframe
+      timeframe = req.query.timeframe as Timeframe;
+    }
+    const topArtists = await userService.getTopArtists(user.id, 10, timeframe);
     return res.json({
       artists: topArtists,
-      topArtistsStyle: user.topArtistsStyle,
-      topArtistsTimeframe: user.topArtistsTimeframe
+      style: user.topArtistsStyle,
+      timeframe: timeframe
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
@@ -360,7 +371,7 @@ export const getUserCurrentTrack = async (
       });
     }
     const currentTrack = await userService.getCurrentlyPlayingTrack(userId);
-    return res.json({ track: currentTrack });
+    return res.json({ ...currentTrack });
   } catch (error) {
     if (error instanceof AccessTokenError) {
       return res.status(401).json({

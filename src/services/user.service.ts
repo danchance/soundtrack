@@ -10,6 +10,7 @@ import auth0API from '../data_access/auth0.data.js';
 import { StyleType, Timeframe } from '../models/user.model.js';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs';
+import getTimeframeStartDate from '../utils/timeframe.js';
 
 /**
  * Type used to represent a users top tracks, albums or artists.
@@ -175,8 +176,10 @@ const userService = (() => {
    */
   const getTopTracks = async (
     userId: string,
-    limit: number
+    limit: number,
+    timeframe: Timeframe
   ): Promise<TopItems> => {
+    let datetime = getTimeframeStartDate(timeframe);
     const topTracks: TopItems = await sequelize.query(
       `
         SELECT 
@@ -196,12 +199,12 @@ const userService = (() => {
           albums ON tracks.album_id = albums.id
         LEFT JOIN 
           artists ON albums.artist_id = artists.id
-        WHERE user_id = :user_id
+        WHERE user_id = :user_id AND user_track_histories.played_at > :datetime
         GROUP BY tracks.id
         ORDER BY count DESC
         LIMIT :limit;`,
       {
-        replacements: { user_id: userId, limit: limit },
+        replacements: { user_id: userId, datetime: datetime, limit: limit },
         type: QueryTypes.SELECT
       }
     );
@@ -209,16 +212,18 @@ const userService = (() => {
   };
 
   /**
-   * Calculates the users top albums based on their Spotify streaming history.
-   * A top album is calculated by totaling the number of times the tracks from an album
-   * have been streamed.
+   * Calculates the users top albums, in the specified timeframe, based on their
+   * Spotify streaming history. A top album is calculated by totaling the number
+   * of times the tracks from an album have been streamed.
    * @param userId Id of the user.
    * @param limit Number of albums to return.
    */
   const getTopAlbums = async (
     userId: string,
-    limit: number
+    limit: number,
+    timeframe: Timeframe
   ): Promise<TopItems> => {
+    let datetime = getTimeframeStartDate(timeframe);
     const topAlbums: TopItems = await sequelize.query(
       `
       SELECT 
@@ -237,12 +242,12 @@ const userService = (() => {
         albums ON tracks.album_id = albums.id
       LEFT JOIN 
         artists ON albums.artist_id = artists.id
-      WHERE user_id = :user_id
+      WHERE user_id = :user_id AND user_track_histories.played_at > :datetime
       GROUP BY albums.id
       ORDER BY count DESC
       LIMIT :limit;`,
       {
-        replacements: { user_id: userId, limit: limit },
+        replacements: { user_id: userId, datetime: datetime, limit: limit },
         type: QueryTypes.SELECT
       }
     );
@@ -258,8 +263,10 @@ const userService = (() => {
    */
   const getTopArtists = async (
     userId: string,
-    limit: number
+    limit: number,
+    timeframe: Timeframe
   ): Promise<TopItems> => {
+    let datetime = getTimeframeStartDate(timeframe);
     const topArtists: TopItems = await sequelize.query(
       `
       SELECT 
@@ -276,12 +283,12 @@ const userService = (() => {
         albums ON tracks.album_id = albums.id
       LEFT JOIN 
         artists ON albums.artist_id = artists.id
-      WHERE user_id = :user_id
+      WHERE user_id = :user_id AND user_track_histories.played_at > :datetime
       GROUP BY artists.id
       ORDER BY count DESC
       LIMIT :limit;`,
       {
-        replacements: { user_id: userId, limit: limit },
+        replacements: { user_id: userId, datetime: datetime, limit: limit },
         type: QueryTypes.SELECT
       }
     );
@@ -306,6 +313,18 @@ const userService = (() => {
       };
     }
     return null;
+  };
+
+  /**
+   * Gets the users total number of streamed tracks for the user.
+   * @param userId Id of the user.
+   * @returns Total number of streams for the user.
+   */
+  const getStreamCount = async (userId: string): Promise<number> => {
+    const streamCount = await userTrackHistoryDb.getUserTracks({
+      where: { userId: userId }
+    });
+    return streamCount.count;
   };
 
   /**
@@ -453,6 +472,7 @@ const userService = (() => {
     getTopAlbums,
     getTopArtists,
     getCurrentlyPlayingTrack,
+    getStreamCount,
     updateUserSettings,
     updateProfilePicture,
     deleteSpotifyConnection,
