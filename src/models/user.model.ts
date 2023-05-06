@@ -28,6 +28,7 @@ export interface IUser {
   id: string;
   username: string;
   picture: string;
+  bannerPicture: string;
   privateProfile?: boolean;
   spotifyAccessToken?: string | null;
   spotifyRefreshToken?: string | null;
@@ -58,6 +59,10 @@ export default (sequelize: Sequelize): ModelDefined<IUser, IUser> => {
         allowNull: false
       },
       picture: {
+        type: DataTypes.STRING,
+        allowNull: false
+      },
+      bannerPicture: {
         type: DataTypes.STRING,
         allowNull: false
       },
