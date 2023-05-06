@@ -17,7 +17,7 @@ router.post(
 );
 
 router.post(
-  '/banner-image',
+  '/banner-picture',
   checkJwt,
   fileupload(),
   userController.postBannerImage

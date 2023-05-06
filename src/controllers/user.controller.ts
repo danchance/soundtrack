@@ -30,6 +30,7 @@ export const getUserInfo = async (
         id: user.id,
         username: user.username,
         image: `${config.domain}${user.picture}`,
+        bannerImage: `${config.domain}${user.bannerPicture}`,
         createdAt: user.createdAt,
         streamCount: await userService.getStreamCount(user.id)
       }
@@ -402,6 +403,7 @@ export const getUserSettings = async (
     return res.json({
       privateProfile: user.privateProfile,
       profilePicture: `${config.domain}${user.picture}`,
+      bannerPicture: `${config.domain}${user.bannerPicture}`,
       topTracksTimeframe: user.topTracksTimeframe,
       topTracksStyle: user.topTracksStyle,
       topAlbumsTimeframe: user.topAlbumsTimeframe,
@@ -511,7 +513,7 @@ export const postProfilePicture = async (
       'profile'
     );
     return res.json({
-      newProfilePicture: `${config.domain}${results}`
+      newImage: `${config.domain}${results}`
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
@@ -554,7 +556,7 @@ export const postBannerImage = async (
       'banner'
     );
     return res.json({
-      newBannerImage: `${config.domain}${results}`
+      newImage: `${config.domain}${results}`
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {

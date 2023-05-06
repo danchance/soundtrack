@@ -343,6 +343,7 @@ const userService = (() => {
       password?: string;
       username?: string;
       picture?: string;
+      bannerPicture?: string;
       privateProfile?: boolean;
       topTracksTimeframe?: Timeframe;
       topTracksStyle?: StyleType;
@@ -370,6 +371,7 @@ const userService = (() => {
         if (
           key === 'username' ||
           key === 'picture' ||
+          key === 'bannerPicture' ||
           key === 'privateProfile' ||
           key === 'topTracksTimeframe' ||
           key === 'topTracksStyle' ||
@@ -400,32 +402,40 @@ const userService = (() => {
    * <provider>|<userId> so we need to remove the pipe character first.
    * @param userId Id of the user.
    * @param picture New profile picture.
+   * @returns Path to the new profile picture.
    */
-  const updateProfilePicture = async (
+  const updateUserImage = async (
     userId: string,
-    picture: UploadedFile
+    picture: UploadedFile,
+    imageType: 'profile' | 'banner'
   ) => {
     const user = await userDb.getUserById(userId);
-    // Remove old image if it exists.
-    if (user.picture) {
-      fs.unlink(`./public${user.picture}`, (err: any) => {
-        if (err) {
-          throw new Error('Error updating profile picture1');
-        }
-      });
-    }
-    // Save new image.
+    // Save path to old image - used to remove it later.
+    const oldImage =
+      imageType === 'profile' ? user.picture : user.bannerPicture;
+    // Save new image and update user.
     const randomValue = Math.floor(Math.random() * 10000);
     const pictureName = `${userId.replace('|', '')}${randomValue}.jpg`;
-    const picturePath = `/images/profiles/${pictureName}`;
+    const picturePath = `/images/${imageType}/${pictureName}`;
     fs.writeFile(`./public${picturePath}`, picture.data, (err: any) => {
       if (err) {
-        throw new Error('Error updating profile picture');
+        throw new Error(`Error updating ${imageType} image`);
       }
     });
-    const res = await updateUserSettings(userId, { picture: picturePath });
-    if (res.picture.status === 'failure') {
+    const updates =
+      imageType === 'profile'
+        ? { picture: picturePath }
+        : { bannerPicture: picturePath };
+    const res = await updateUserSettings(userId, updates);
+    if (
+      res.picture?.status === 'failure' ||
+      res.bannerPicture?.status === 'failure'
+    ) {
       throw new Error('Error updating profile picture');
+    }
+    // Remove old image.
+    if (oldImage) {
+      fs.unlink(`./public${oldImage}`, () => {});
     }
     return picturePath;
   };
@@ -474,7 +484,7 @@ const userService = (() => {
     getCurrentlyPlayingTrack,
     getStreamCount,
     updateUserSettings,
-    updateProfilePicture,
+    updateUserImage,
     deleteSpotifyConnection,
     deleteAccount
   };
