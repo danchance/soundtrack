@@ -30,6 +30,7 @@ export const getUserInfo = async (
         id: user.id,
         username: user.username,
         image: `${config.domain}${user.picture}`,
+        bannerImage: `${config.domain}${user.bannerPicture}`,
         createdAt: user.createdAt,
         streamCount: await userService.getStreamCount(user.id)
       }
@@ -402,6 +403,7 @@ export const getUserSettings = async (
     return res.json({
       privateProfile: user.privateProfile,
       profilePicture: `${config.domain}${user.picture}`,
+      bannerPicture: `${config.domain}${user.bannerPicture}`,
       topTracksTimeframe: user.topTracksTimeframe,
       topTracksStyle: user.topTracksStyle,
       topAlbumsTimeframe: user.topAlbumsTimeframe,
@@ -505,12 +507,56 @@ export const postProfilePicture = async (
       });
     }
     // TODO: validate file
-    const results = await userService.updateProfilePicture(
+    const results = await userService.updateUserImage(
       req.user.id,
-      req.files.picture as UploadedFile
+      req.files.picture as UploadedFile,
+      'profile'
     );
     return res.json({
-      newProfilePicture: `${config.domain}${results}`
+      newImage: `${config.domain}${results}`
+    });
+  } catch (error) {
+    if (error instanceof RecordNotFoundError) {
+      return res.status(404).json({
+        error: {
+          status: 404,
+          message: error.message
+        }
+      });
+    }
+    return next(error);
+  }
+};
+
+/**
+ * Controller for the POST users/banner-image endpoint.
+ * Updates the users banner picture to the image in the request.
+ * @param req Express Request object.
+ * @param res Express Response object.
+ * @param next next middleware function.
+ */
+export const postBannerImage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.files) {
+      return res.status(400).json({
+        error: {
+          status: 400,
+          message: 'No files were uploaded.'
+        }
+      });
+    }
+    // TODO: validate file
+    const results = await userService.updateUserImage(
+      req.user.id,
+      req.files.picture as UploadedFile,
+      'banner'
+    );
+    return res.json({
+      newImage: `${config.domain}${results}`
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {

@@ -16,6 +16,13 @@ router.post(
   userController.postProfilePicture
 );
 
+router.post(
+  '/banner-picture',
+  checkJwt,
+  fileupload(),
+  userController.postBannerImage
+);
+
 router.post('/add', userController.postUser);
 
 router.post('/spotify', checkJwt, userController.postSpotifyConnection);
