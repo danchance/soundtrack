@@ -10,7 +10,7 @@ import userDb from './data_access/user.data.js';
 /**
  * Syncronize models with the database
  */
-// sequelize.sync({ force: true });
+sequelize.sync({ force: true });
 
 const app: Express = express();
 
@@ -45,8 +45,8 @@ if (process.env.NODE_ENV === 'development') {
       await userDb.createUser({
         id: req.user.id,
         username: req.user.username,
-        picture: '/images/profiles/auth06416f24fd7a5ed86bc312ac7.jpg',
-        bannerPicture: '/images/profiles/auth06416f24fd7a5ed86bc312ac7.jpg'
+        picture: '/images/test/koala.jpg',
+        bannerPicture: '/images/test/space.jpg'
       });
     } catch (error) {
       // Catch and ignore all errors in this situation.

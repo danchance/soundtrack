@@ -1,5 +1,5 @@
 import { Sequelize, DataTypes, ModelDefined, Model } from 'sequelize';
-import slugify from '../utils/slugify.js';
+import SequelizeSlugify from 'sequelize-slugify';
 
 /**
  * Define interface for Artist attributes.
@@ -31,21 +31,18 @@ export default (sequelize: Sequelize): ModelDefined<IArtist, IArtist> => {
         type: DataTypes.STRING,
         allowNull: false
       },
-      slug: DataTypes.STRING
+      slug: {
+        type: DataTypes.STRING,
+        unique: true
+      }
     },
     {
       underscored: true
     }
   );
 
-  Artist.addHook('beforeCreate', async (artist, options) => {
-    artist.dataValues.slug = slugify(artist.dataValues.name);
-  });
-
-  Artist.addHook('beforeBulkCreate', async (artists, options) => {
-    for (const artist of artists) {
-      artist.dataValues.slug = slugify(artist.dataValues.name);
-    }
+  SequelizeSlugify.slugifyModel(Artist, {
+    source: ['name']
   });
 
   return Artist;
