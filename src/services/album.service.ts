@@ -61,13 +61,13 @@ const albumService = (() => {
           album.artists[0].id
         );
         await artistService.addArtist(spotifyArtist);
-        // Add the artists other albums, do not wait for this to finish as it
-        // is is not necessary and will delay the response.
-        artistService.processNewArtist(spotifyArtist, accessToken);
       }
       // Now add album and its tracks.
       await addAlbum(album, accessToken);
     }
+    // Process any new artists that were added, do not wait for this to finish
+    // as it is is not necessary and will delay the response.
+    artistService.processNewArtists(accessToken);
   };
 
   /**
@@ -82,7 +82,7 @@ const albumService = (() => {
         name: album.name,
         type: album.album_type,
         trackNum: album.total_tracks,
-        releaseYear: 2022,
+        releaseYear: album.release_date.split('-')[0] as unknown as number,
         artwork: album.images[0].url,
         artistId: album.artists[0].id
       });

@@ -5,7 +5,6 @@ import spotifyApi, { SpotifyArtist } from '../data_access/spotify.data.js';
 import albumService from './album.service.js';
 import { sequelize } from '../models/_index.js';
 import { QueryTypes } from 'sequelize';
-import trackDb from '../data_access/track.data.js';
 
 /**
  * Define types used in this file.
@@ -56,6 +55,8 @@ type Track = {
  * Handles all artist logic.
  */
 const artistService = (() => {
+  let newArtists: SpotifyArtist[] = [];
+
   /**
    * Add an artist to the database.
    * @param artist Artist to add to the database.
@@ -68,6 +69,7 @@ const artistService = (() => {
         name: artist.name,
         image: artist.images![0].url
       });
+      newArtists.push(artist);
     } catch (error) {
       if (!(error instanceof UniqueConstraintError)) {
         throw error;
@@ -76,8 +78,21 @@ const artistService = (() => {
   };
 
   /**
-   * **Called when a new artist is added to the database.**
-   * Adds all the artist's albums and tracks to the database.
+   * Processes all artists in the newArtists array. Adds all the artist's albums
+   * and tracks to the database.
+   * @param AccessToken Spotify access token.
+   */
+  const processNewArtists = async (AccessToken: string) => {
+    const newArtistsCopy = newArtists;
+    newArtists = [];
+    for (const artist of newArtistsCopy) {
+      await processNewArtist(artist, AccessToken);
+    }
+  };
+
+  /**
+   * Adds all the albums and tracks for a single artist to the database.
+   * Duplicates are ignored.
    * @param artist Artist to process.
    * @param accessToken Spotify access token.
    */
@@ -103,7 +118,7 @@ const artistService = (() => {
           name: album.name,
           type: album.album_type,
           trackNum: album.total_tracks,
-          releaseYear: 2022,
+          releaseYear: album.release_date.split('-')[0] as unknown as number,
           artwork: album.images[0].url,
           artistId: artist.id
         };
@@ -301,7 +316,7 @@ const artistService = (() => {
   };
 
   return {
-    processNewArtist,
+    processNewArtists,
     addArtist,
     getTopListeners,
     getTopTracks,

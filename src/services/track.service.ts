@@ -1,5 +1,4 @@
 import { QueryTypes } from 'sequelize';
-import albumDb from '../data_access/album.data.js';
 import { SpotifyAlbum, SpotifyTrack } from '../data_access/spotify.data.js';
 import trackDb from '../data_access/track.data.js';
 import albumService from './album.service.js';
