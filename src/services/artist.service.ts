@@ -5,7 +5,6 @@ import spotifyApi, { SpotifyArtist } from '../data_access/spotify.data.js';
 import albumService from './album.service.js';
 import { sequelize } from '../models/_index.js';
 import { QueryTypes } from 'sequelize';
-import trackDb from '../data_access/track.data.js';
 
 /**
  * Define types used in this file.
@@ -56,56 +55,81 @@ type Track = {
  * Handles all artist logic.
  */
 const artistService = (() => {
+  let newArtists: SpotifyArtist[] = [];
+
   /**
-   * Adds an artist to the Artist table along with all their albums and tracks.
+   * Add an artist to the database.
    * @param artist Artist to add to the database.
    * @param accessToken Spotify access token.
    */
-  const addArtist = async (artist: SpotifyArtist, accessToken: string) => {
+  const addArtist = async (artist: SpotifyArtist) => {
     try {
-      // Add the artist
-      const spotifyArtist = await spotifyApi.getArtist(accessToken, artist.id);
       await artistDb.createArtist({
-        id: spotifyArtist.id,
-        name: spotifyArtist.name,
-        image: spotifyArtist.images![0].url
+        id: artist.id,
+        name: artist.name,
+        image: artist.images![0].url
       });
-      let spotifyAlbums;
-      let page = 0;
-      let pageSize = 50;
-      do {
-        // Add all albums
-        spotifyAlbums = await spotifyApi.getArtistAlbums(
-          accessToken,
-          artist.id,
-          ['album'],
-          pageSize,
-          page * 50
-        );
-        const albums = spotifyAlbums.items.map((album) => {
-          return {
-            id: album.id,
-            name: album.name,
-            type: album.album_type,
-            trackNum: album.total_tracks,
-            releaseYear: 2022,
-            artwork: album.images[0].url,
-            artistId: artist.id
-          };
-        });
-        // Add all the tracks
-        await albumDb.bulkCreateAlbums(albums);
-        for (const album of spotifyAlbums.items) {
-          await albumService.addAlbumTracks(album, accessToken);
-        }
-        // If there are more results, loop back to request the next page
-        page++;
-      } while (spotifyAlbums.total > pageSize * page);
+      newArtists.push(artist);
     } catch (error) {
       if (!(error instanceof UniqueConstraintError)) {
         throw error;
       }
     }
+  };
+
+  /**
+   * Processes all artists in the newArtists array. Adds all the artist's albums
+   * and tracks to the database.
+   * @param AccessToken Spotify access token.
+   */
+  const processNewArtists = async (AccessToken: string) => {
+    const newArtistsCopy = newArtists;
+    newArtists = [];
+    for (const artist of newArtistsCopy) {
+      await processNewArtist(artist, AccessToken);
+    }
+  };
+
+  /**
+   * Adds all the albums and tracks for a single artist to the database.
+   * Duplicates are ignored.
+   * @param artist Artist to process.
+   * @param accessToken Spotify access token.
+   */
+  const processNewArtist = async (
+    artist: SpotifyArtist,
+    accessToken: string
+  ) => {
+    let spotifyAlbums;
+    let page = 0;
+    let pageSize = 50;
+    do {
+      // Fetch albums and format them.
+      spotifyAlbums = await spotifyApi.getArtistAlbums(
+        accessToken,
+        artist.id,
+        ['album'],
+        pageSize,
+        page * 50
+      );
+      const localAlbums = spotifyAlbums.items.map((album) => {
+        return {
+          id: album.id,
+          name: album.name,
+          type: album.album_type,
+          trackNum: album.total_tracks,
+          releaseYear: album.release_date.split('-')[0] as unknown as number,
+          artwork: album.images[0].url,
+          artistId: artist.id
+        };
+      });
+      // Add albums and tracks to the database.
+      await albumDb.bulkCreateAlbums(localAlbums);
+      for (const album of spotifyAlbums.items) {
+        await albumService.addAlbumTracks(album, accessToken);
+      }
+      page++;
+    } while (spotifyAlbums.total > pageSize * page);
   };
 
   /**
@@ -292,6 +316,7 @@ const artistService = (() => {
   };
 
   return {
+    processNewArtists,
     addArtist,
     getTopListeners,
     getTopTracks,

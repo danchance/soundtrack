@@ -1,6 +1,5 @@
 import { QueryTypes } from 'sequelize';
-import albumDb from '../data_access/album.data.js';
-import { SpotifyTrack } from '../data_access/spotify.data.js';
+import { SpotifyAlbum, SpotifyTrack } from '../data_access/spotify.data.js';
 import trackDb from '../data_access/track.data.js';
 import albumService from './album.service.js';
 import { sequelize } from '../models/_index.js';
@@ -20,30 +19,27 @@ type TopListener = {
  */
 const trackService = (() => {
   /**
-   * Adds a list of Spotify tracks to add to the track table. A track must reference an album
-   * in the albums table, the album must reference an artist in the artist table.
-   * To reduce requests to the Spotify API, when an artist is added all the artists albums and
-   * tracks on the albums will be added at the same time.
-   * @param tracks List of tracks to add to the track table.
+   * **Should only be called to process a list of recently played tracks.**
+   * Takes a list of Spotify track objects and creates a list of unknown albums to
+   * add to the album table. When an album is added, all tracks on the album are
+   * also added, this is done to reduce requests to the Spotify API.
+   * @param tracks List of Spotify track objects.
    * @param accessToken Spotify access token.
    */
-  const addTracks = async (
-    tracks: Array<SpotifyTrack>,
+  const processRecentlyPlayedTracks = async (
+    tracks: SpotifyTrack[],
     accessToken: string
   ) => {
+    const unknownAlbums: SpotifyAlbum[] = [];
     for (const track of tracks) {
+      // Check if the album is already in the unknownAlbums list
+      if (unknownAlbums.find((album) => album.id === track.album.id)) continue;
       // Check if the track already exists in the database
-      const res = await trackDb.getTracks({ where: { id: track.id } });
-      if (res.count !== 0) continue;
-      const albums = await albumDb.getAlbums({ where: { id: track.album.id } });
-      if (albums.count === 0) {
-        // Album doesn't exist, add the album and all album tracks
-        await albumService.addAlbum(track.album, accessToken);
-      } else {
-        // Album exists, update all tracks on the album
-        await albumService.addAlbumTracks(track.album, accessToken);
-      }
+      const localTrack = await trackDb.getTracks({ where: { id: track.id } });
+      if (localTrack.count !== 0) continue;
+      unknownAlbums.push(track.album);
     }
+    await albumService.processRecentlyPlayedAlbums(unknownAlbums, accessToken);
   };
 
   /**
@@ -81,7 +77,7 @@ const trackService = (() => {
     return topListeners as TopListener[];
   };
 
-  return { addTracks, getTopListeners };
+  return { processRecentlyPlayedTracks, getTopListeners };
 })();
 
 export default trackService;

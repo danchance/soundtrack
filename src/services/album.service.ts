@@ -32,31 +32,57 @@ type AlbumTrack = {
  */
 const albumService = (() => {
   /**
-   * Adds an album to the Album table.
-   * If the artist does not exist, it will add the artist, all albums and tracks,
-   * otherwise it will add the album and its tracks.
-   * @param album The album to add to the database.
+   * **Should only be called to process a list of recently played albums.**
+   * Takes a list of Spotify album objects and adds them to the database,
+   * and handles the necessary dependencies.
+   * @param albums List of Spotify album objects.
+   * @param accessToken Spotify access token.
+   */
+  const processRecentlyPlayedAlbums = async (
+    albums: SpotifyAlbum[],
+    accessToken: string
+  ) => {
+    for (const album of albums) {
+      const localAlbum = await albumDb.getAlbums({ where: { id: album.id } });
+      // Album exists, update the album tracks.
+      if (localAlbum.count !== 0) {
+        await addAlbumTracks(album, accessToken);
+        continue;
+      }
+      // Album does not exist, check if artist exists.
+      const localArtist = await artistDb.getArtists({
+        where: { id: album.artists[0].id }
+      });
+      // Artist does not exist, add artist first.
+      // Need to fetch artist as we only have a simplified artist object.
+      if (localArtist.count === 0) {
+        const spotifyArtist = await spotifyApi.getArtist(
+          accessToken,
+          album.artists[0].id
+        );
+        await artistService.addArtist(spotifyArtist);
+      }
+      // Now add album and its tracks.
+      await addAlbum(album, accessToken);
+    }
+    // Process any new artists that were added, do not wait for this to finish
+    // as it is is not necessary and will delay the response.
+    artistService.processNewArtists(accessToken);
+  };
+
+  /**
+   * Add an album and its tracks to the database.
+   * @param album Album to add to the database.
    * @param accessToken Spotify access token.
    */
   const addAlbum = async (album: SpotifyAlbum, accessToken: string) => {
-    const spotifyArtist = await artistDb.getArtists({
-      where: { id: album.artists[0].id }
-    });
-    if (spotifyArtist.count === 0) {
-      // Artist does not exist, add the artist, all albums and tracks
-      await artistService.addArtist(album.artists[0], accessToken);
-      // addArtist does not add compilations or singles, so check if the album is a compilation or single.
-      if (album.album_type !== 'compilation' && album.album_type !== 'single') {
-        return;
-      }
-    }
     try {
       await albumDb.createAlbum({
         id: album.id,
         name: album.name,
         type: album.album_type,
         trackNum: album.total_tracks,
-        releaseYear: 2022,
+        releaseYear: album.release_date.split('-')[0] as unknown as number,
         artwork: album.images[0].url,
         artistId: album.artists[0].id
       });
@@ -85,7 +111,7 @@ const albumService = (() => {
         pageSize,
         page * 50
       );
-      const tracks = spotifyTracks.items.map((track) => {
+      const localTracks = spotifyTracks.items.map((track) => {
         return {
           id: track.id,
           name: track.name,
@@ -93,7 +119,7 @@ const albumService = (() => {
           albumId: album.id
         };
       });
-      await trackDb.bulkCreateTracks(tracks);
+      await trackDb.bulkCreateTracks(localTracks);
       // If there are more results, loop back to request the next page.
       page++;
     } while (spotifyTracks.total > pageSize * page);
@@ -190,6 +216,7 @@ const albumService = (() => {
   };
 
   return {
+    processRecentlyPlayedAlbums,
     addAlbum,
     addAlbumTracks,
     getAlbumTracks,
