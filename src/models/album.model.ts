@@ -1,5 +1,5 @@
 import { Sequelize, DataTypes, ModelDefined, Model } from 'sequelize';
-import slugify from '../utils/slugify.js';
+import SequelizeSlugify from 'sequelize-slugify';
 
 /**
  * Enum for album types returned by the Spotify API
@@ -74,22 +74,18 @@ export default (sequelize: Sequelize): ModelDefined<IAlbum, IAlbum> => {
           key: 'id'
         }
       },
-      slug: DataTypes.STRING
+      slug: {
+        type: DataTypes.STRING,
+        unique: true
+      }
     },
     {
       underscored: true
     }
   );
 
-  Album.addHook('beforeCreate', async (album, options) => {
-    console.log(album);
-    album.dataValues.slug = slugify(album.dataValues.name);
-  });
-
-  Album.addHook('beforeBulkCreate', async (albums, options) => {
-    for (const album of albums) {
-      album.dataValues.slug = slugify(album.dataValues.name);
-    }
+  SequelizeSlugify.slugifyModel(Album, {
+    source: ['name']
   });
 
   return Album;

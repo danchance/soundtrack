@@ -5,7 +5,7 @@ import {
   Model,
   ForeignKey
 } from 'sequelize';
-import slugify from '../utils/slugify.js';
+import SequelizeSlugify from 'sequelize-slugify';
 
 /**
  * Define interface for Track attributes.
@@ -49,21 +49,18 @@ export default (sequelize: Sequelize): ModelDefined<ITrack, ITrack> => {
           key: 'id'
         }
       },
-      slug: DataTypes.STRING
+      slug: {
+        type: DataTypes.STRING,
+        unique: true
+      }
     },
     {
       underscored: true
     }
   );
 
-  Track.addHook('beforeCreate', async (track, options) => {
-    track.dataValues.slug = slugify(track.dataValues.name);
-  });
-
-  Track.addHook('beforeBulkCreate', async (tracks, options) => {
-    for (const track of tracks) {
-      track.dataValues.slug = slugify(track.dataValues.name);
-    }
+  SequelizeSlugify.slugifyModel(Track, {
+    source: ['name']
   });
 
   return Track;
