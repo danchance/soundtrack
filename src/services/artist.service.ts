@@ -57,6 +57,67 @@ type Track = {
  */
 const artistService = (() => {
   /**
+   * Add an artist to the database.
+   * @param artist Artist to add to the database.
+   * @param accessToken Spotify access token.
+   */
+  const addArtist1 = async (artist: SpotifyArtist) => {
+    try {
+      await artistDb.createArtist({
+        id: artist.id,
+        name: artist.name,
+        image: artist.images![0].url
+      });
+    } catch (error) {
+      if (!(error instanceof UniqueConstraintError)) {
+        throw error;
+      }
+    }
+  };
+
+  /**
+   * **Called when a new artist is added to the database.**
+   * Adds all the artist's albums and tracks to the database.
+   * @param artist Artist to process.
+   * @param accessToken Spotify access token.
+   */
+  const processNewArtist = async (
+    artist: SpotifyArtist,
+    accessToken: string
+  ) => {
+    let spotifyAlbums;
+    let page = 0;
+    let pageSize = 50;
+    do {
+      // Fetch albums and format them.
+      spotifyAlbums = await spotifyApi.getArtistAlbums(
+        accessToken,
+        artist.id,
+        ['album'],
+        pageSize,
+        page * 50
+      );
+      const localAlbums = spotifyAlbums.items.map((album) => {
+        return {
+          id: album.id,
+          name: album.name,
+          type: album.album_type,
+          trackNum: album.total_tracks,
+          releaseYear: 2022,
+          artwork: album.images[0].url,
+          artistId: artist.id
+        };
+      });
+      // Add albums and tracks to the database.
+      await albumDb.bulkCreateAlbums(localAlbums);
+      for (const album of spotifyAlbums.items) {
+        await albumService.addAlbumTracks(album, accessToken);
+      }
+      page++;
+    } while (spotifyAlbums.total > pageSize * page);
+  };
+
+  /**
    * Adds an artist to the Artist table along with all their albums and tracks.
    * @param artist Artist to add to the database.
    * @param accessToken Spotify access token.
@@ -292,6 +353,8 @@ const artistService = (() => {
   };
 
   return {
+    addArtist1,
+    processNewArtist,
     addArtist,
     getTopListeners,
     getTopTracks,

@@ -10,7 +10,7 @@ import userDb from './data_access/user.data.js';
 /**
  * Syncronize models with the database
  */
-sequelize.sync({ force: true });
+// sequelize.sync({ force: true });
 
 const app: Express = express();
 
