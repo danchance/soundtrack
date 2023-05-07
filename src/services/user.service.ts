@@ -402,6 +402,7 @@ const userService = (() => {
    * <provider>|<userId> so we need to remove the pipe character first.
    * @param userId Id of the user.
    * @param picture New profile picture.
+   * @param imageType Type of image to update.
    * @returns Path to the new profile picture.
    */
   const updateUserImage = async (
