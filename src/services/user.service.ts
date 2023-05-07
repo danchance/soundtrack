@@ -146,7 +146,6 @@ const userService = (() => {
       });
       trackList.push(item.track);
     });
-    // await trackService.addTracks(trackList, accessToken);
     await trackService.processRecentlyPlayedTracks(trackList, accessToken);
     await userTrackHistoryDb.bulkCreateUserTracks(trackHistoryList);
 
