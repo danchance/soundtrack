@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import {
   AccessTokenError,
-  RecordNotFoundError
+  RecordNotFoundError,
+  SpotifyAuthError
 } from '../data_access/errors.js';
 import userDb from '../data_access/user.data.js';
 import userService from '../services/user.service.js';
@@ -551,9 +552,14 @@ export const postSpotifyConnection = async (
     );
     return res.json({ status: 'success' });
   } catch (error) {
-    // TODO: Errors to handle
-    // Add error to spotify POST to handle invalid code.
-    // can replicate by refreshing page with code in url.
+    if (error instanceof SpotifyAuthError) {
+      return res.status(400).json({
+        error: {
+          status: 400,
+          message: error.message
+        }
+      });
+    }
     if (error instanceof RecordNotFoundError) {
       return res.status(404).json({
         error: {
