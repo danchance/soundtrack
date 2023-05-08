@@ -27,15 +27,13 @@ export const getUserInfo = async (
       where: { username: req.params.user }
     });
     return res.json({
-      user: {
-        id: user.id,
-        username: user.username,
-        image: `${config.domain}${user.picture}`,
-        bannerImage: `${config.domain}${user.bannerPicture}`,
-        createdAt: user.createdAt,
-        streamCount: await userService.getStreamCount(user.id),
-        privateProfile: user.privateProfile
-      }
+      id: user.id,
+      username: user.username,
+      image: `${config.domain}${user.picture}`,
+      bannerImage: `${config.domain}${user.bannerPicture}`,
+      createdAt: user.createdAt,
+      streamCount: await userService.getStreamCount(user.id),
+      privateProfile: user.privateProfile
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
