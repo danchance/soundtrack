@@ -2,7 +2,11 @@ import config from '../config/general.config.js';
 import { Response } from 'node-fetch';
 import { get, post } from '../utils/fetch_wrapper.js';
 import { BodyInit, RequestInit } from 'node-fetch';
-import { AccessTokenError, RateLimitError } from '../data_access/errors.js';
+import {
+  AccessTokenError,
+  RateLimitError,
+  SpotifyAuthError
+} from '../data_access/errors.js';
 
 type StandardError = {
   error: {
@@ -108,6 +112,9 @@ export const spotifyPost = async <T>(
   } catch (error) {
     if (error instanceof Response) {
       const err = (await error.json()) as AuthenticationError;
+      if (err.error === 'invalid_grant' || err.error === 'invalid_request') {
+        throw new SpotifyAuthError(err.error_description);
+      }
       throw new Error(err.error_description);
     }
     throw error;

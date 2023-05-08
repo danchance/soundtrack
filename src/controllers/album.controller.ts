@@ -69,12 +69,15 @@ export const getAlbumData = async (
     const otherAlbums = await artistService.getArtistRandomAlbums(artist.id, 7);
     return res.json({
       id: album.id,
-      albumName: album.name,
-      albumSlug: album.slug,
-      albumArtwork: album.artwork,
-      artistName: artist.name,
-      artistArtwork: artist.image,
-      artistSlug: artist.slug,
+      name: album.name,
+      slug: album.slug,
+      artwork: album.artwork,
+      artist: {
+        id: artist.id,
+        name: artist.name,
+        artwork: artist.image,
+        slug: artist.slug
+      },
       albumTracks: albumTracks,
       topListeners: topListeners.map((user) => ({
         id: user.id,

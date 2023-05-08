@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import {
   AccessTokenError,
-  RecordNotFoundError
+  RecordNotFoundError,
+  SpotifyAuthError
 } from '../data_access/errors.js';
 import userDb from '../data_access/user.data.js';
 import userService from '../services/user.service.js';
@@ -26,14 +27,13 @@ export const getUserInfo = async (
       where: { username: req.params.user }
     });
     return res.json({
-      user: {
-        id: user.id,
-        username: user.username,
-        image: `${config.domain}${user.picture}`,
-        bannerImage: `${config.domain}${user.bannerPicture}`,
-        createdAt: user.createdAt,
-        streamCount: await userService.getStreamCount(user.id)
-      }
+      id: user.id,
+      username: user.username,
+      image: `${config.domain}${user.picture}`,
+      bannerImage: `${config.domain}${user.bannerPicture}`,
+      createdAt: user.createdAt,
+      streamCount: await userService.getStreamCount(user.id),
+      privateProfile: user.privateProfile
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
@@ -78,72 +78,16 @@ export const getUserTrackHistory = async (
         }
       });
     }
-    const recentlyPlayed = await userService.updateTrackHistory(user.id, 10);
+    const recentlyPlayed = await userService.getTrackHistory(user.id, 10);
     return res.json({
-      recentTracks: recentlyPlayed
+      spotifyError: recentlyPlayed.spotifyError,
+      recentTracks: recentlyPlayed.tracks
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
       return res.status(404).json({
         error: {
           status: 404,
-          message: error.message
-        }
-      });
-    }
-    if (error instanceof AccessTokenError) {
-      return res.status(401).json({
-        error: {
-          status: 401,
-          message: error.message
-        }
-      });
-    }
-    return next(error);
-  }
-};
-
-/**
- * Controller for the GET users/:id/history endpoint.
- * Returns the last 10 tracks the user streamed on Spotify.
- * If the profile is private only the account owner can view the track history.
- * @param req Express Request object.
- * @param res Express Response object.
- * @param next next middleware function.
- */
-export const getUserHistory = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    // Query param contains username, get the userId.
-    const user = await userDb.getUser({
-      where: { username: req.params.user }
-    });
-    if (user.privateProfile && req.user?.id !== user.id) {
-      return res.status(403).json({
-        error: {
-          status: 403,
-          message: 'User profile is private'
-        }
-      });
-    }
-    const recentTracks = await userService.updateTrackHistory(user.id, 10);
-    return res.json({ tracks: recentTracks });
-  } catch (error) {
-    if (error instanceof RecordNotFoundError) {
-      return res.status(404).json({
-        error: {
-          status: 404,
-          message: error.message
-        }
-      });
-    }
-    if (error instanceof AccessTokenError) {
-      return res.status(401).json({
-        error: {
-          status: 401,
           message: error.message
         }
       });
@@ -606,9 +550,14 @@ export const postSpotifyConnection = async (
     );
     return res.json({ status: 'success' });
   } catch (error) {
-    // TODO: Errors to handle
-    // Add error to spotify POST to handle invalid code.
-    // can replicate by refreshing page with code in url.
+    if (error instanceof SpotifyAuthError) {
+      return res.status(400).json({
+        error: {
+          status: 400,
+          message: error.message
+        }
+      });
+    }
     if (error instanceof RecordNotFoundError) {
       return res.status(404).json({
         error: {
