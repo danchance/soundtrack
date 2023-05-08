@@ -63,7 +63,7 @@ const userService = (() => {
       !user.spotifyRefreshToken ||
       !user.spotifyTokenExpires
     ) {
-      throw new AccessTokenError('User must authenticate with Spotify');
+      throw new AccessTokenError('User must authenticate with Spotify1');
     }
     // Add 2 minutes to the current time to account for any latency.
     const currentDatetime = new Date(Date.now() + 120 * 1000);
@@ -84,15 +84,52 @@ const userService = (() => {
   };
 
   /**
-   * Updates the users streaming history using the Spotify API and returns
-   * the requested number of tracks last streamed.
+   * Updates the users streaming history and returns the requested number of
+   * most recently streamed tracks.
+   * If a Spotify Access Token error occurs, set a flag so the user can be
+   * alerted they need to reauthenticate.
    * @param userId Id of the user.
    * @param limit Number of tracks to return.
    */
-  const updateTrackHistory = async (
-    userId: string,
-    limit: number
-  ): Promise<Array<IUserTrackHistory>> => {
+  const getTrackHistory = async (userId: string, limit: number) => {
+    const results: { spotifyError?: boolean; tracks: IUserTrackHistory[] } = {
+      tracks: []
+    };
+    try {
+      await updateTrackHistory(userId);
+    } catch (error) {
+      if (error instanceof AccessTokenError) {
+        results['spotifyError'] = true;
+      } else {
+        throw error;
+      }
+    }
+    results['tracks'] = (
+      await userTrackHistoryDb.getUserTracks({
+        attributes: ['id', 'playedAt'],
+        where: {
+          userId: userId
+        },
+        order: [['playedAt', 'DESC']],
+        limit: limit,
+        include: [
+          {
+            model: models.track,
+            include: [
+              { model: models.album, include: [{ model: models.artist }] }
+            ]
+          }
+        ]
+      })
+    ).rows;
+    return results;
+  };
+
+  /**
+   * Updates the users streaming history using the Spotify API.
+   * @param userId Id of the user.
+   */
+  const updateTrackHistory = async (userId: string) => {
     const accessToken = await getSpotifyAccessToken(userId);
     // Find the last track that the user listened to, and use this timestamp
     // as a cursor to request new streamed tracks from Spotify.
@@ -109,26 +146,7 @@ const userService = (() => {
     let res;
     if (lastPlay.count !== 0) {
       // If the last track was played less than 30 seconds ago do not update stream history.
-      if (lastPlay.rows[0].playedAt > new Date(Date.now() - 30 * 1000)) {
-        return (
-          await userTrackHistoryDb.getUserTracks({
-            attributes: ['id', 'playedAt'],
-            where: {
-              userId: userId
-            },
-            order: [['playedAt', 'DESC']],
-            limit: limit,
-            include: [
-              {
-                model: models.track,
-                include: [
-                  { model: models.album, include: [{ model: models.artist }] }
-                ]
-              }
-            ]
-          })
-        ).rows;
-      }
+      if (lastPlay.rows[0].playedAt > new Date(Date.now() - 30 * 1000)) return;
       // Add 1 second on to ensure Spotify doesn't include this item in the response.
       const after = lastPlay.rows[0].playedAt.getTime() + 1000;
       res = await spotifyApi.getRecentlyPlayed(accessToken, 20, after);
@@ -148,25 +166,6 @@ const userService = (() => {
     });
     await trackService.processRecentlyPlayedTracks(trackList, accessToken);
     await userTrackHistoryDb.bulkCreateUserTracks(trackHistoryList);
-
-    return (
-      await userTrackHistoryDb.getUserTracks({
-        attributes: ['id', 'playedAt'],
-        where: {
-          userId: userId
-        },
-        order: [['playedAt', 'DESC']],
-        limit: limit,
-        include: [
-          {
-            model: models.track,
-            include: [
-              { model: models.album, include: [{ model: models.artist }] }
-            ]
-          }
-        ]
-      })
-    ).rows;
   };
 
   /**
@@ -479,7 +478,7 @@ const userService = (() => {
 
   return {
     authenticateSpotifyUser,
-    updateTrackHistory,
+    getTrackHistory,
     getTopTracks,
     getTopAlbums,
     getTopArtists,

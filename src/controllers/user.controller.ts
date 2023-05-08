@@ -79,23 +79,16 @@ export const getUserTrackHistory = async (
         }
       });
     }
-    const recentlyPlayed = await userService.updateTrackHistory(user.id, 10);
+    const recentlyPlayed = await userService.getTrackHistory(user.id, 10);
     return res.json({
-      recentTracks: recentlyPlayed
+      spotifyError: recentlyPlayed.spotifyError,
+      recentTracks: recentlyPlayed.tracks
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
       return res.status(404).json({
         error: {
           status: 404,
-          message: error.message
-        }
-      });
-    }
-    if (error instanceof AccessTokenError) {
-      return res.status(401).json({
-        error: {
-          status: 401,
           message: error.message
         }
       });
