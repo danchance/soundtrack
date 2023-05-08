@@ -33,8 +33,6 @@ router.get('/:user/info', userController.getUserInfo);
 
 router.get('/:user/track-history', userController.getUserTrackHistory);
 
-router.get('/:user/history', userController.getUserHistory);
-
 router.get('/:userid/recap', userController.getUserRecap);
 
 router.get('/:userid/discover', userController.getUserDiscover);

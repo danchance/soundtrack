@@ -79,7 +79,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   console.log(error);
-  return res.status(500).json({ ERROR: 'Internal server error' });
+  return res.status(500).json({ status: 500, error: 'Internal server error' });
 });
 
 export default app;

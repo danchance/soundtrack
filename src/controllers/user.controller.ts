@@ -32,7 +32,8 @@ export const getUserInfo = async (
         image: `${config.domain}${user.picture}`,
         bannerImage: `${config.domain}${user.bannerPicture}`,
         createdAt: user.createdAt,
-        streamCount: await userService.getStreamCount(user.id)
+        streamCount: await userService.getStreamCount(user.id),
+        privateProfile: user.privateProfile
       }
     });
   } catch (error) {
@@ -82,55 +83,6 @@ export const getUserTrackHistory = async (
     return res.json({
       recentTracks: recentlyPlayed
     });
-  } catch (error) {
-    if (error instanceof RecordNotFoundError) {
-      return res.status(404).json({
-        error: {
-          status: 404,
-          message: error.message
-        }
-      });
-    }
-    if (error instanceof AccessTokenError) {
-      return res.status(401).json({
-        error: {
-          status: 401,
-          message: error.message
-        }
-      });
-    }
-    return next(error);
-  }
-};
-
-/**
- * Controller for the GET users/:id/history endpoint.
- * Returns the last 10 tracks the user streamed on Spotify.
- * If the profile is private only the account owner can view the track history.
- * @param req Express Request object.
- * @param res Express Response object.
- * @param next next middleware function.
- */
-export const getUserHistory = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    // Query param contains username, get the userId.
-    const user = await userDb.getUser({
-      where: { username: req.params.user }
-    });
-    if (user.privateProfile && req.user?.id !== user.id) {
-      return res.status(403).json({
-        error: {
-          status: 403,
-          message: 'User profile is private'
-        }
-      });
-    }
-    const recentTracks = await userService.updateTrackHistory(user.id, 10);
-    return res.json({ tracks: recentTracks });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
       return res.status(404).json({
