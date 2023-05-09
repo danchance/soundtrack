@@ -63,9 +63,9 @@ const userService = (() => {
       !user.spotifyRefreshToken ||
       !user.spotifyTokenExpires
     ) {
-      throw new AccessTokenError('User must authenticate with Spotify1');
+      throw new AccessTokenError('User must authenticate with Spotify');
     }
-    // Add 2 minutes to the current time to account for any latency.
+    // Add 2 minutes to the current time to account for any delay.
     const currentDatetime = new Date(Date.now() + 120 * 1000);
     if (user.spotifyTokenExpires > currentDatetime) {
       return user.spotifyAccessToken;

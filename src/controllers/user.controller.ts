@@ -354,7 +354,10 @@ export const getUserSettings = async (
       topAlbumsStyle: user.topAlbumsStyle,
       topArtistsTimeframe: user.topArtistsTimeframe,
       topArtistsStyle: user.topArtistsStyle,
-      spotifyConnection: user.spotifyRefreshToken !== null
+      spotifyConnection:
+        user.spotifyRefreshToken !== null &&
+        user.spotifyAccessToken !== null &&
+        user.spotifyTokenExpires !== null
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
