@@ -2,6 +2,8 @@ import { Router } from 'express';
 import * as userController from '../controllers/user.controller.js';
 import checkJwt from '../middleware/auth.js';
 import fileupload from 'express-fileupload';
+import getUserInfoSchema from '../validation_schemas/user/get_user_info.schema.js';
+import validateRequest from '../middleware/validate_request.js';
 
 const router: Router = Router();
 
@@ -29,7 +31,12 @@ router.post('/spotify', checkJwt, userController.postSpotifyConnection);
 
 router.delete('/spotify', checkJwt, userController.deleteSpotifyConnection);
 
-router.get('/:user/info', userController.getUserInfo);
+router.get(
+  '/:username/info',
+  getUserInfoSchema,
+  validateRequest,
+  userController.getUserInfo
+);
 
 router.get('/:user/track-history', userController.getUserTrackHistory);
 

@@ -11,8 +11,8 @@ import config from '../config/general.config.js';
 import { Timeframe } from '../models/user.model.js';
 
 /**
- * Controller for the GET users/:id endpoint.
- * Gets user information for the requested username.
+ * Controller for the GET users/[username]/info endpoint.
+ * Gets user information for the user with the requested username.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -24,7 +24,7 @@ export const getUserInfo = async (
 ) => {
   try {
     const user = await userDb.getUser({
-      where: { username: req.params.user }
+      where: { username: req.params.username }
     });
     return res.json({
       id: user.id,
