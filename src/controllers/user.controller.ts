@@ -49,13 +49,11 @@ export const getUserInfo = async (
 };
 
 /**
- * Controller for the GET users/:id/profile endpoint.
- * Returns all data displayed on the users profile page.
- *  - Last 10 tracks the user streamed on Spotify.
- *  - Top 10 streamed tracks.
- *  - Top 10 streamed artists.
- *  - Top 10 streamed albums.
- * If the profile is private only the account owner can view the profile.
+ * Controller for the GET users/[username]/track-history endpoint.
+ * Updates the user's streaming history then returns the last 10 tracks
+ * the user has listened to.
+ * If the profile is private data is only returned if the logged in user
+ * is the account owner.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -68,7 +66,7 @@ export const getUserTrackHistory = async (
   try {
     // Query param contains username, get the userId.
     const user = await userDb.getUser({
-      where: { username: req.params.user }
+      where: { username: req.params.username }
     });
     if (user.privateProfile && req.user?.id !== user.id) {
       return res.status(403).json({
@@ -133,9 +131,11 @@ export const getUserDiscover = (
 };
 
 /**
- * Controller for the GET users/:id/tracks endpoint.
- * Returns the users top 10 streamed tracks.
- * If the profile is private only the account owner can view the top tracks.
+ * Controller for the GET users/[username]/tracks endpoint.
+ * Returns the users top 10 streamed tracks for the requested timeframe.
+ * If no timeframe is specified the user's default timeframe is used.
+ * If the profile is private data is only returned if the logged in user
+ * is the account owner.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -148,7 +148,7 @@ export const getUserTracks = async (
   try {
     // Query param contains username, get the userId
     const user = await userDb.getUser({
-      where: { username: req.params.user }
+      where: { username: req.params.username }
     });
     if (user.privateProfile && req.user?.id !== user.id) {
       return res.status(403).json({
@@ -162,7 +162,6 @@ export const getUserTracks = async (
     // timeframe setting for the user.
     let timeframe = user.topTracksTimeframe!;
     if (req.query.timeframe) {
-      //TODO: Validate the timeframe
       timeframe = req.query.timeframe as Timeframe;
     }
     const topTracks = await userService.getTopTracks(user.id, 10, timeframe);
@@ -185,9 +184,11 @@ export const getUserTracks = async (
 };
 
 /**
- * Controller for the GET users/:id/albums endpoint.
- * Returns the users top 10 streamed albums.
- * If the profile is private only the account owner can view the top albums.
+ * Controller for the GET users/[username]/albums endpoint.
+ * Returns the users top 10 streamed albums for the requested timeframe.
+ * If no timeframe is specified the user's default timeframe is used.
+ * If the profile is private data is only returned if the logged in user
+ * is the account owner.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -200,7 +201,7 @@ export const getUserAlbums = async (
   try {
     // Query param contains username, get the userId
     const user = await userDb.getUser({
-      where: { username: req.params.user }
+      where: { username: req.params.username }
     });
     if (user.privateProfile && req.user?.id !== user.id) {
       return res.status(403).json({
@@ -214,7 +215,6 @@ export const getUserAlbums = async (
     // timeframe setting for the user.
     let timeframe = user.topAlbumsTimeframe!;
     if (req.query.timeframe) {
-      //TODO: Validate the timeframe
       timeframe = req.query.timeframe as Timeframe;
     }
     const topAlbums = await userService.getTopAlbums(user.id, 10, timeframe);
@@ -237,9 +237,11 @@ export const getUserAlbums = async (
 };
 
 /**
- * Controller for the GET users/:id/artists endpoint.
- * Returns the users top 10 streamed artists.
- * If the profile is private only the account owner can view the top artists.
+ * Controller for the GET users/[username]/artists endpoint.
+ * Returns the users top 10 streamed artists for the requested timeframe.
+ * If no timeframe is specified the user's default timeframe is used.
+ * If the profile is private data is only returned if the logged in user
+ * is the account owner.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -252,7 +254,7 @@ export const getUserArtists = async (
   try {
     // Query param contains username, get the userId
     const user = await userDb.getUser({
-      where: { username: req.params.user }
+      where: { username: req.params.username }
     });
     if (user.privateProfile && req.user?.id !== user.id) {
       return res.status(403).json({
@@ -266,7 +268,6 @@ export const getUserArtists = async (
     // timeframe setting for the user.
     let timeframe = user.topArtistsTimeframe!;
     if (req.query.timeframe) {
-      //TODO: Validate the timeframe
       timeframe = req.query.timeframe as Timeframe;
     }
     const topArtists = await userService.getTopArtists(user.id, 10, timeframe);
@@ -289,12 +290,13 @@ export const getUserArtists = async (
 };
 
 /**
- * Controller for the GET users/userid/current-track endpoint.
+ * Controller for the GET users/[userid]/current-track endpoint.
  * Returns the current track the user is listening to on Spotify.
  * If the user is not currently streaming a track the last streamed
  * track is returned, with a flag indicating it is not being streamed
  * currently.
- * If the profile is private only the account owner can view the current track.
+ * If the profile is private data is only returned if the logged in user
+ * is the account owner.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -374,10 +376,18 @@ export const getUserSettings = async (
 
 /**
  * Controller for the PATCH users/settings endpoint.
- * Valid settings include:
- * - username, email, password, picture, privateProfile,
- *   topTracksTimeframe, topTracksStyle, topAlbumsTimeframe
- *   topAlbumsStyle, topArtistsTimeframe, topArtistsStyle
+ * Updates various settings for the users profile and account.
+ * Valid settings that can be updated are:
+ *    username: string,
+ *    email: string,
+ *    password: string,
+ *    privateProfile: boolean,
+ *    topTracksTimeframe: "week" | "month" | "year" | "all",
+ *    topTracksStyle: "list" | "grid" | "chart",
+ *    topAlbumsTimeframe: "week" | "month" | "year" | "all",
+ *    topAlbumsStyle: "list" | "grid" | "chart",
+ *    topArtistsTimeframe: "week" | "month" | "year" | "all",
+ *    topArtistsStyle: "list" | "grid" | "chart".
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
@@ -387,35 +397,9 @@ export const patchUserSettings = async (
   res: Response,
   next: NextFunction
 ) => {
-  const settings: { [k: string]: any } = {};
-  const status: { [k: string]: any } = {};
-  // Validate the settings in the request body.
-  if (req.body.username) {
-    // between 3 and 15 characters
-    // only contain certain characters
-
-    //passed checks
-    settings.username = req.body.username;
-  }
-  if (req.body.email) {
-    // TODO:
-
-    //passed checks
-    settings.email = req.body.email;
-  }
-  if (req.body.password) {
-    if (req.body.password !== req.body.passwordConfirm) {
-      status.password = {
-        status: 'failure',
-        message: 'Passwords do not match.'
-      };
-    }
-
-    //passed checks
-    settings.password = req.body.password;
-  }
   try {
-    // Validate user exists.
+    // Validate user exists, needed as updateUserSettings can try to update
+    // Auth0 settings first which does not throw RecordNotFoundError.
     await userDb.getUserById(req.user.id);
     const results = await userService.updateUserSettings(req.user.id, req.body);
     return res.json(results);
@@ -453,10 +437,18 @@ export const postProfilePicture = async (
         }
       });
     }
-    // TODO: validate file
+    const picture = req.files.picture as UploadedFile;
+    if (picture.mimetype !== 'image/jpeg' && picture.mimetype !== 'image/png') {
+      return res.status(400).json({
+        error: {
+          status: 400,
+          message: 'Image must be in JPEG or PNG format.'
+        }
+      });
+    }
     const results = await userService.updateUserImage(
       req.user.id,
-      req.files.picture as UploadedFile,
+      picture,
       'profile'
     );
     return res.json({
@@ -496,10 +488,18 @@ export const postBannerImage = async (
         }
       });
     }
-    // TODO: validate file
+    const picture = req.files.picture as UploadedFile;
+    if (picture.mimetype !== 'image/jpeg' && picture.mimetype !== 'image/png') {
+      return res.status(400).json({
+        error: {
+          status: 400,
+          message: 'Image must be in JPEG or PNG format.'
+        }
+      });
+    }
     const results = await userService.updateUserImage(
       req.user.id,
-      req.files.picture as UploadedFile,
+      picture,
       'banner'
     );
     return res.json({
@@ -602,7 +602,7 @@ export const deleteSpotifyConnection = async (
 };
 
 /**
- * Controller for the DELETE users/:userid endpoint.
+ * Controller for the DELETE users/[userid] endpoint.
  * Deletes the user account.
  * @param req Express Request object.
  * @param res Express Response object.
