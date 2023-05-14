@@ -11,6 +11,7 @@ import getUserArtistsSchema from '../validation_schemas/user/get_user_artists.sc
 import getUserCurrentTrackSchema from '../validation_schemas/user/get_user_current_track.schema.js';
 import patchUserSettingsSchema from '../validation_schemas/user/patch_user_settings.schema.js';
 import postSpotifyConnectionSchema from '../validation_schemas/user/post_spotify_connection.schema.js';
+import deleteUserSchema from '../validation_schemas/user/delete_user.schema.js';
 
 const router: Router = Router();
 
@@ -90,12 +91,18 @@ router.get(
 );
 
 router.get(
-  '/:userid/current-track',
+  '/:userId/current-track',
   getUserCurrentTrackSchema,
   validateRequest,
   userController.getUserCurrentTrack
 );
 
-router.delete('/:userid', checkJwt, userController.deleteUser);
+router.delete(
+  '/:userId',
+  checkJwt,
+  deleteUserSchema,
+  validateRequest,
+  userController.deleteUser
+);
 
 export default router;

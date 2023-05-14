@@ -290,7 +290,7 @@ export const getUserArtists = async (
 };
 
 /**
- * Controller for the GET users/[userid]/current-track endpoint.
+ * Controller for the GET users/[userId]/current-track endpoint.
  * Returns the current track the user is listening to on Spotify.
  * If the user is not currently streaming a track the last streamed
  * track is returned, with a flag indicating it is not being streamed
@@ -307,7 +307,7 @@ export const getUserCurrentTrack = async (
   next: NextFunction
 ) => {
   try {
-    const userId = req.params.userid;
+    const { userId } = req.params;
     const user = await userDb.getUserById(userId);
     if (user.privateProfile && req.user?.id !== user.id) {
       return res.status(403).json({
@@ -602,7 +602,7 @@ export const deleteSpotifyConnection = async (
 };
 
 /**
- * Controller for the DELETE users/[userid] endpoint.
+ * Controller for the DELETE users/[userId] endpoint.
  * Deletes the user account.
  * @param req Express Request object.
  * @param res Express Response object.
@@ -614,7 +614,8 @@ export const deleteUser = async (
   next: NextFunction
 ) => {
   try {
-    await userService.deleteAccount(req.user.id);
+    const { userId } = req.params;
+    await userService.deleteAccount(userId);
     return res.json({ status: 'success' });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
