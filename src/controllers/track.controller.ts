@@ -9,7 +9,7 @@ import albumService from '../services/album.service.js';
 import artistService from '../services/artist.service.js';
 
 /**
- * Controller for the GET tracks/:trackSlug endpoint.
+ * Controller for the GET tracks/[trackSlug] endpoint.
  * Returns general information about the track with the given slug.
  * @param req Express Request object
  * @param res Express Response object
@@ -49,7 +49,7 @@ export const getTrack = async (
 };
 
 /**
- * Controller for the GET tracks/:trackSlug endpoint.
+ * Controller for the GET tracks/[trackSlug]/data endpoint.
  * Returns complete streaming data about the track with the given slug.
  * @param req Express Request object
  * @param res Express Response object
