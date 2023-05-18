@@ -603,7 +603,7 @@ export const deleteSpotifyConnection = async (
 
 /**
  * Controller for the DELETE users/[userId] endpoint.
- * Deletes the user account.
+ * Deletes the user account and all associated data.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
