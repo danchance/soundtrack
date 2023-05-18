@@ -7,7 +7,7 @@ import config from '../config/general.config.js';
 import artistService from '../services/artist.service.js';
 
 /**
- * Controller for the GET albums/:albumSlug endpoint.
+ * Controller for the GET albums/[albumSlug] endpoint.
  * Returns general information about the album with the given slug.
  * @param req Express Request object
  * @param res Express Response object
@@ -47,7 +47,7 @@ export const getAlbum = async (
 };
 
 /**
- * Controller for the GET albums/:albumSlug/data endpoint.
+ * Controller for the GET albums/[albumSlug]/data endpoint.
  * Returns complete streaming data about the album with the given slug.
  * @param req Express Request object
  * @param res Express Response object
@@ -103,7 +103,7 @@ export const getAlbumData = async (
 };
 
 /**
- * Controller for the GET albums/:id/tracks endpoint.
+ * Controller for the GET albums/[albumId]/tracks endpoint.
  * Returns all tracks belonging to an album.
  * @param req Express Request object
  * @param res Express Response object
@@ -115,7 +115,8 @@ export const getAlbumTracks = async (
   next: NextFunction
 ) => {
   try {
-    const album = await albumDb.getAlbumById(req.params.id);
+    const { albumId } = req.params;
+    const album = await albumDb.getAlbumById(albumId);
     const albumTracks = await albumService.getAlbumTracks(album.id);
     return res.json({ albumId: album.id, albumTracks: albumTracks });
   } catch (error) {
@@ -132,19 +133,37 @@ export const getAlbumTracks = async (
 };
 
 /**
- * Controller for the GET albums/:id/top-listeners endpoint.
+ * Controller for the GET albums/[albumId]/top-listeners endpoint.
+ * Returns the top listeners of an album.
  * @param req Express Request object
  * @param res Express Response object
  * @param next next middleware function
  */
-export const getAlbumTopListeners = (
+export const getAlbumTopListeners = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    return res.json({});
+    const { albumId } = req.params;
+    const topListeners = await albumService.getTopListeners(albumId, 10);
+    return res.json({
+      topListeners: topListeners.map((user) => ({
+        id: user.id,
+        username: user.username,
+        picture: `${config.domain}${user.picture}`,
+        count: user.count
+      }))
+    });
   } catch (error) {
+    if (error instanceof RecordNotFoundError) {
+      return res.status(404).json({
+        error: {
+          status: 404,
+          message: error.message
+        }
+      });
+    }
     return next(error);
   }
 };

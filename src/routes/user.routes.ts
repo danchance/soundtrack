@@ -2,12 +2,28 @@ import { Router } from 'express';
 import * as userController from '../controllers/user.controller.js';
 import checkJwt from '../middleware/auth.js';
 import fileupload from 'express-fileupload';
+import validateRequest from '../middleware/validate_request.js';
+import getUserInfoSchema from '../validation_schemas/user/get_user_info.schema.js';
+import getUserTrackHistorySchema from '../validation_schemas/user/get_user_track_history.schema.js';
+import getUserTracksSchema from '../validation_schemas/user/get_user_tracks.schema.js';
+import getUserAlbumsSchema from '../validation_schemas/user/get_user_albums.schema.js';
+import getUserArtistsSchema from '../validation_schemas/user/get_user_artists.schema.js';
+import getUserCurrentTrackSchema from '../validation_schemas/user/get_user_current_track.schema.js';
+import patchUserSettingsSchema from '../validation_schemas/user/patch_user_settings.schema.js';
+import postSpotifyConnectionSchema from '../validation_schemas/user/post_spotify_connection.schema.js';
+import deleteUserSchema from '../validation_schemas/user/delete_user.schema.js';
 
 const router: Router = Router();
 
 router.get('/settings', checkJwt, userController.getUserSettings);
 
-router.patch('/settings', checkJwt, userController.patchUserSettings);
+router.patch(
+  '/settings',
+  checkJwt,
+  patchUserSettingsSchema,
+  validateRequest,
+  userController.patchUserSettings
+);
 
 router.post(
   '/profile-picture',
@@ -25,26 +41,68 @@ router.post(
 
 router.post('/add', userController.postUser);
 
-router.post('/spotify', checkJwt, userController.postSpotifyConnection);
+router.post(
+  '/spotify',
+  checkJwt,
+  postSpotifyConnectionSchema,
+  validateRequest,
+  userController.postSpotifyConnection
+);
 
 router.delete('/spotify', checkJwt, userController.deleteSpotifyConnection);
 
-router.get('/:user/info', userController.getUserInfo);
+router.get(
+  '/:username/info',
+  getUserInfoSchema,
+  validateRequest,
+  userController.getUserInfo
+);
 
-router.get('/:user/track-history', userController.getUserTrackHistory);
+router.get(
+  '/:username/track-history',
+  getUserTrackHistorySchema,
+  validateRequest,
+  userController.getUserTrackHistory
+);
 
-router.get('/:userid/recap', userController.getUserRecap);
+router.get('/:username/recap', userController.getUserRecap);
 
-router.get('/:userid/discover', userController.getUserDiscover);
+router.get('/:username/discover', userController.getUserDiscover);
 
-router.get('/:user/tracks', userController.getUserTracks);
+router.get(
+  '/:username/tracks',
+  getUserTracksSchema,
+  validateRequest,
+  userController.getUserTracks
+);
 
-router.get('/:user/albums', userController.getUserAlbums);
+router.get(
+  '/:username/albums',
+  getUserAlbumsSchema,
+  validateRequest,
+  userController.getUserAlbums
+);
 
-router.get('/:user/artists', userController.getUserArtists);
+router.get(
+  '/:username/artists',
+  getUserArtistsSchema,
+  validateRequest,
+  userController.getUserArtists
+);
 
-router.get('/:userid/current-track', userController.getUserCurrentTrack);
+router.get(
+  '/:userId/current-track',
+  getUserCurrentTrackSchema,
+  validateRequest,
+  userController.getUserCurrentTrack
+);
 
-router.delete('/:userid', checkJwt, userController.deleteUser);
+router.delete(
+  '/:userId',
+  checkJwt,
+  deleteUserSchema,
+  validateRequest,
+  userController.deleteUser
+);
 
 export default router;

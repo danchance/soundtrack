@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { sequelize } from './models/_index.js';
 import checkUser from './middleware/user.js';
 import userDb from './data_access/user.data.js';
+import BadRequestError from './errors/bad_request.error.js';
 
 /**
  * Syncronize models with the database
@@ -72,7 +73,10 @@ app.use(
 app.use('/api', routes);
 
 /**
- * Error reporting: 404 and 500.
+ * Error reporting:
+ *  - No matching route (404)
+ *  - Validation errors (400)
+ *  - Internal server errors (500)
  */
 app.use((req: Request, res: Response, next: NextFunction) => {
   return res
@@ -80,10 +84,21 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     .json({ error: { status: 404, message: 'Resource Not Found' } });
 });
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
-  console.log(error);
-  return res
-    .status(500)
-    .json({ error: { status: 500, error: 'Internal server error' } });
+  if (error instanceof BadRequestError) {
+    return res.status(400).json({
+      error: {
+        status: 400,
+        error: error.errors
+      }
+    });
+  }
+  return res.status(500).json({
+    error: {
+      status: 500,
+      error: 'Internal server error',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : {}
+    }
+  });
 });
 
 export default app;
