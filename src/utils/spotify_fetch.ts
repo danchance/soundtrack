@@ -2,11 +2,9 @@ import config from '../config/general.config.js';
 import { Response } from 'node-fetch';
 import { get, post } from '../utils/fetch_wrapper.js';
 import { BodyInit, RequestInit } from 'node-fetch';
-import {
-  AccessTokenError,
-  RateLimitError,
-  SpotifyAuthError
-} from '../data_access/errors.js';
+import AccessTokenError from '../errors/access_token.error.js';
+import SpotifyAuthError from '../errors/spotify_auth.error.js';
+import RateLimitError from '../errors/rate_limit.error.js';
 
 type StandardError = {
   error: {

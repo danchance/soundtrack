@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import artistDb from '../data_access/artist.data.js';
-import { RecordNotFoundError } from '../data_access/errors.js';
+import RecordNotFoundError from '../errors/record_not_found.error.js';
 import artistService from '../services/artist.service.js';
 import config from '../config/general.config.js';
 import albumDb from '../data_access/album.data.js';

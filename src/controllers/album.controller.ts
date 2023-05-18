@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { RecordNotFoundError } from '../data_access/errors.js';
+import RecordNotFoundError from '../errors/record_not_found.error.js';
 import albumDb from '../data_access/album.data.js';
 import artistDb from '../data_access/artist.data.js';
 import albumService from '../services/album.service.js';

@@ -1,9 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-import {
-  AccessTokenError,
-  RecordNotFoundError,
-  SpotifyAuthError
-} from '../data_access/errors.js';
+import AccessTokenError from '../errors/access_token.error.js';
+import SpotifyAuthError from '../errors/spotify_auth.error.js';
+import RecordNotFoundError from '../errors/record_not_found.error.js';
 import userDb from '../data_access/user.data.js';
 import userService from '../services/user.service.js';
 import { UploadedFile } from 'express-fileupload';

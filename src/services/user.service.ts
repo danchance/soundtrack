@@ -1,5 +1,5 @@
 import { QueryTypes } from 'sequelize';
-import { AccessTokenError } from '../data_access/errors.js';
+import AccessTokenError from '../errors/access_token.error.js';
 import spotifyApi, { SpotifyTrack } from '../data_access/spotify.data.js';
 import userDb from '../data_access/user.data.js';
 import userTrackHistoryDb from '../data_access/usertrackhistory.data.js';

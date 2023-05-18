@@ -1,7 +1,7 @@
 import { FindAndCountOptions } from 'sequelize';
 import { IGenre } from '../models/genre.model.js';
 import { models } from '../models/_index.js';
-import { RecordNotFoundError } from './errors.js';
+import RecordNotFoundError from '../errors/record_not_found.error.js';
 
 /**
  * Database functions used to manage all operations on Genre records.
