@@ -164,7 +164,14 @@ export const getUserTracks = async (
     }
     // Use the requested limit if it exists, otherwise default limit to 10
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
-    const topTracks = await userService.getTopTracks(user.id, limit, timeframe);
+    // Use the requested page number if it exists, otherwise default to page 1
+    const page = req.query.page ? parseInt(req.query.page as string) : 1;
+    const topTracks = await userService.getTopTracks(
+      user.id,
+      limit,
+      page,
+      timeframe
+    );
     return res.json({
       tracks: topTracks,
       style: user.topTracksStyle,
