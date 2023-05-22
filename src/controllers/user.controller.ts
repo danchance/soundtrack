@@ -162,7 +162,9 @@ export const getUserTracks = async (
     if (req.query.timeframe) {
       timeframe = req.query.timeframe as Timeframe;
     }
-    const topTracks = await userService.getTopTracks(user.id, 10, timeframe);
+    // Use the requested limit if it exists, otherwise default limit to 10
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+    const topTracks = await userService.getTopTracks(user.id, limit, timeframe);
     return res.json({
       tracks: topTracks,
       style: user.topTracksStyle,
