@@ -16,7 +16,8 @@ const getUserTracksSchema = checkSchema({
     trim: true,
     isInt: {
       options: {
-        min: 10
+        min: 10,
+        max: 50
       }
     }
   },
