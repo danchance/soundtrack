@@ -10,6 +10,27 @@ const getUserArtistsSchema = checkSchema({
     trim: true,
     escape: true
   },
+  limit: {
+    in: ['query'],
+    optional: true,
+    trim: true,
+    isInt: {
+      options: {
+        min: 10,
+        max: 50
+      }
+    }
+  },
+  page: {
+    in: ['query'],
+    optional: true,
+    trim: true,
+    isInt: {
+      options: {
+        min: 1
+      }
+    }
+  },
   timeframe: {
     in: ['query'],
     optional: true,
