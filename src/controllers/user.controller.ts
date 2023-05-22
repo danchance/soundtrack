@@ -288,9 +288,12 @@ export const getUserArtists = async (
     }
     // Use the requested limit if it exists, otherwise default limit to 10
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+    // Use the requested page number if it exists, otherwise default to page 1
+    const page = req.query.page ? parseInt(req.query.page as string) : 1;
     const topArtists = await userService.getTopArtists(
       user.id,
       limit,
+      page,
       timeframe
     );
     return res.json({
