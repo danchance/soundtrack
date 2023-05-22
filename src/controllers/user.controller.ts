@@ -226,7 +226,14 @@ export const getUserAlbums = async (
     }
     // Use the requested limit if it exists, otherwise default limit to 10
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
-    const topAlbums = await userService.getTopAlbums(user.id, limit, timeframe);
+    // Use the requested page number if it exists, otherwise default to page 1
+    const page = req.query.page ? parseInt(req.query.page as string) : 1;
+    const topAlbums = await userService.getTopAlbums(
+      user.id,
+      limit,
+      page,
+      timeframe
+    );
     return res.json({
       albums: topAlbums,
       style: user.topAlbumsStyle,

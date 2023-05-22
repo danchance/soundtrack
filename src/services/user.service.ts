@@ -174,7 +174,7 @@ const userService = (() => {
    * @param userId Id of the user.
    * @param limit Number of albums to return.
    * @param page Page number of the requested results.
-   * @param timeframe The timeframe of streams to include in the query
+   * @param timeframe The timeframe of streams to include in the query.
    */
   const getTopTracks = async (
     userId: string,
@@ -227,13 +227,17 @@ const userService = (() => {
    * of times the tracks from an album have been streamed.
    * @param userId Id of the user.
    * @param limit Number of albums to return.
+   * @param page Page number of the requested results.
+   * @param timeframe The timeframe of streams to include in the query.
    */
   const getTopAlbums = async (
     userId: string,
     limit: number,
+    page: number,
     timeframe: Timeframe
   ): Promise<TopItems> => {
-    let datetime = getTimeframeStartDate(timeframe);
+    const datetime = getTimeframeStartDate(timeframe);
+    const offset = (page - 1) * limit;
     const topAlbums: TopItems = await sequelize.query(
       `
       SELECT 
@@ -255,9 +259,15 @@ const userService = (() => {
       WHERE user_id = :user_id AND user_track_histories.played_at > :datetime
       GROUP BY albums.id
       ORDER BY count DESC
-      LIMIT :limit;`,
+      LIMIT :limit
+      OFFSET :offset;`,
       {
-        replacements: { user_id: userId, datetime: datetime, limit: limit },
+        replacements: {
+          user_id: userId,
+          datetime: datetime,
+          limit: limit,
+          offset: offset
+        },
         type: QueryTypes.SELECT
       }
     );
