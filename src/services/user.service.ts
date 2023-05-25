@@ -392,6 +392,41 @@ const userService = (() => {
   };
 
   /**
+   * Calculates the total number of unique albums the user has streamed in the requested
+   * timeframe.
+   * @param userId Id of the user.
+   * @param timeframe The timeframe of streams to include in the query.
+   * @returns Number of unique albums streamed by the user
+   */
+  const getAlbumStreamCount = async (
+    userId: string,
+    timeframe: Timeframe
+  ): Promise<number> => {
+    const datetime = getTimeframeStartDate(timeframe);
+    const count = await sequelize.query(
+      `
+        SELECT COUNT(*) as count FROM 
+        (
+          SELECT albums.id
+          FROM user_track_histories
+          LEFT JOIN tracks ON user_track_histories.track_id = tracks.id
+          LEFT JOIN albums ON tracks.album_id = albums.id
+          WHERE user_id = :user_id AND user_track_histories.played_at > :datetime
+          GROUP BY albums.id
+        ) 
+        AS user_album_list`,
+      {
+        replacements: {
+          user_id: userId,
+          datetime: datetime
+        },
+        type: QueryTypes.SELECT
+      }
+    );
+    return (count[0] as { count: number }).count;
+  };
+
+  /**
    * Updates the users settings. There are 3 different scenarios, depending on
    * the setting:
    *  1) Setting is stored in the local database.
@@ -549,6 +584,7 @@ const userService = (() => {
     getCurrentlyPlayingTrack,
     getStreamCount,
     getTrackStreamCount,
+    getAlbumStreamCount,
     updateUserSettings,
     updateUserImage,
     deleteSpotifyConnection,

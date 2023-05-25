@@ -238,7 +238,8 @@ export const getUserAlbums = async (
     return res.json({
       albums: topAlbums,
       style: user.topAlbumsStyle,
-      timeframe: timeframe
+      timeframe: timeframe,
+      total: await userService.getAlbumStreamCount(user.id, timeframe)
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
