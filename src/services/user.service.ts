@@ -376,7 +376,7 @@ const userService = (() => {
       (
         SELECT track_id 
         FROM user_track_histories
-        WHERE user_id = :user_id
+        WHERE user_id = :user_id AND user_track_histories.played_at > :datetime
         GROUP BY track_id
       ) 
       AS user_track_list`,
