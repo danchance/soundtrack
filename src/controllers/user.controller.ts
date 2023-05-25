@@ -301,7 +301,8 @@ export const getUserArtists = async (
     return res.json({
       artists: topArtists,
       style: user.topArtistsStyle,
-      timeframe: timeframe
+      timeframe: timeframe,
+      total: await userService.getArtistStreamCount(user.id, timeframe)
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {

@@ -405,16 +405,52 @@ const userService = (() => {
     const datetime = getTimeframeStartDate(timeframe);
     const count = await sequelize.query(
       `
-        SELECT COUNT(*) as count FROM 
-        (
-          SELECT albums.id
-          FROM user_track_histories
-          LEFT JOIN tracks ON user_track_histories.track_id = tracks.id
-          LEFT JOIN albums ON tracks.album_id = albums.id
-          WHERE user_id = :user_id AND user_track_histories.played_at > :datetime
-          GROUP BY albums.id
-        ) 
-        AS user_album_list`,
+      SELECT COUNT(*) as count FROM 
+      (
+        SELECT albums.id
+        FROM user_track_histories
+        LEFT JOIN tracks ON user_track_histories.track_id = tracks.id
+        LEFT JOIN albums ON tracks.album_id = albums.id
+        WHERE user_id = :user_id AND user_track_histories.played_at > :datetime
+        GROUP BY albums.id
+      ) 
+      AS user_album_list`,
+      {
+        replacements: {
+          user_id: userId,
+          datetime: datetime
+        },
+        type: QueryTypes.SELECT
+      }
+    );
+    return (count[0] as { count: number }).count;
+  };
+
+  /**
+   * Calculates the total number of unique artists the user has streamed in the requested
+   * timeframe.
+   * @param userId Id of the user.
+   * @param timeframe The timeframe of streams to include in the query.
+   * @returns Number of unique artists streamed by the user
+   */
+  const getArtistStreamCount = async (
+    userId: string,
+    timeframe: Timeframe
+  ): Promise<number> => {
+    const datetime = getTimeframeStartDate(timeframe);
+    const count = await sequelize.query(
+      `
+      SELECT COUNT(*) as count FROM 
+      (
+        SELECT artists.id
+        FROM user_track_histories
+        LEFT JOIN tracks ON user_track_histories.track_id = tracks.id
+        LEFT JOIN albums ON tracks.album_id = albums.id
+        LEFT JOIN artists ON albums.artist_id = artists.id
+        WHERE user_id = :user_id AND user_track_histories.played_at > :datetime
+        GROUP BY artists.id
+      ) 
+      AS user_artist_list`,
       {
         replacements: {
           user_id: userId,
@@ -585,6 +621,7 @@ const userService = (() => {
     getStreamCount,
     getTrackStreamCount,
     getAlbumStreamCount,
+    getArtistStreamCount,
     updateUserSettings,
     updateUserImage,
     deleteSpotifyConnection,
