@@ -186,28 +186,28 @@ const userService = (() => {
     const offset = (page - 1) * limit;
     const topTracks: TopItems = await sequelize.query(
       `
-        SELECT 
-          tracks.id, 
-          tracks.name as trackName, 
-          tracks.slug as trackSlug,
-          albums.artwork, 
-          albums.slug as albumSlug,
-          artists.name as artistName,
-          artists.slug as artistSlug,   
-          COUNT(tracks.id) AS count
-        FROM 
-          user_track_histories
-        LEFT JOIN 
-          tracks ON user_track_histories.track_id = tracks.id
-        LEFT JOIN 
-          albums ON tracks.album_id = albums.id
-        LEFT JOIN 
-          artists ON albums.artist_id = artists.id
-        WHERE user_id = :user_id AND user_track_histories.played_at > :datetime
-        GROUP BY tracks.id
-        ORDER BY count DESC
-        LIMIT :limit
-        OFFSET :offset;`,
+      SELECT 
+        tracks.id, 
+        tracks.name as trackName, 
+        tracks.slug as trackSlug,
+        albums.artwork, 
+        albums.slug as albumSlug,
+        artists.name as artistName,
+        artists.slug as artistSlug,   
+        COUNT(tracks.id) AS count
+      FROM 
+        user_track_histories
+      LEFT JOIN 
+        tracks ON user_track_histories.track_id = tracks.id
+      LEFT JOIN 
+        albums ON tracks.album_id = albums.id
+      LEFT JOIN 
+        artists ON albums.artist_id = artists.id
+      WHERE user_id = :user_id AND user_track_histories.played_at > :datetime
+      GROUP BY tracks.id
+      ORDER BY count DESC
+      LIMIT :limit
+      OFFSET :offset;`,
       {
         replacements: {
           user_id: userId,
@@ -346,7 +346,8 @@ const userService = (() => {
   };
 
   /**
-   * Gets the users total number of streamed tracks for the user.
+   * Gets the users total number of streams for the user. This includes multiple streams
+   * of the same track
    * @param userId Id of the user.
    * @returns Total number of streams for the user.
    */
@@ -355,6 +356,39 @@ const userService = (() => {
       where: { userId: userId }
     });
     return streamCount.count;
+  };
+
+  /**
+   * Calculates the total number of unique tracks the user has streamed in the requested
+   * timeframe.
+   * @param userId Id of the user.
+   * @param timeframe The timeframe of streams to include in the query.
+   * @returns Number of unique tracks streamed by the user
+   */
+  const getTrackStreamCount = async (
+    userId: string,
+    timeframe: Timeframe
+  ): Promise<number> => {
+    const datetime = getTimeframeStartDate(timeframe);
+    const count = await sequelize.query(
+      `
+      SELECT COUNT(*) as count FROM 
+      (
+        SELECT track_id 
+        FROM user_track_histories
+        WHERE user_id = :user_id
+        GROUP BY track_id
+      ) 
+      AS user_track_list`,
+      {
+        replacements: {
+          user_id: userId,
+          datetime: datetime
+        },
+        type: QueryTypes.SELECT
+      }
+    );
+    return (count[0] as { count: number }).count;
   };
 
   /**
@@ -514,6 +548,7 @@ const userService = (() => {
     getTopArtists,
     getCurrentlyPlayingTrack,
     getStreamCount,
+    getTrackStreamCount,
     updateUserSettings,
     updateUserImage,
     deleteSpotifyConnection,

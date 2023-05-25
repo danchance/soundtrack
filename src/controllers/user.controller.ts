@@ -175,7 +175,8 @@ export const getUserTracks = async (
     return res.json({
       tracks: topTracks,
       style: user.topTracksStyle,
-      timeframe: timeframe
+      timeframe: timeframe,
+      total: await userService.getTrackStreamCount(user.id, timeframe)
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
