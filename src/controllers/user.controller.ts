@@ -162,7 +162,16 @@ export const getUserTracks = async (
     if (req.query.timeframe) {
       timeframe = req.query.timeframe as Timeframe;
     }
-    const topTracks = await userService.getTopTracks(user.id, 10, timeframe);
+    // Use the requested limit if it exists, otherwise default limit to 10
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+    // Use the requested page number if it exists, otherwise default to page 1
+    const page = req.query.page ? parseInt(req.query.page as string) : 1;
+    const topTracks = await userService.getTopTracks(
+      user.id,
+      limit,
+      page,
+      timeframe
+    );
     return res.json({
       tracks: topTracks,
       style: user.topTracksStyle,
@@ -215,7 +224,16 @@ export const getUserAlbums = async (
     if (req.query.timeframe) {
       timeframe = req.query.timeframe as Timeframe;
     }
-    const topAlbums = await userService.getTopAlbums(user.id, 10, timeframe);
+    // Use the requested limit if it exists, otherwise default limit to 10
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+    // Use the requested page number if it exists, otherwise default to page 1
+    const page = req.query.page ? parseInt(req.query.page as string) : 1;
+    const topAlbums = await userService.getTopAlbums(
+      user.id,
+      limit,
+      page,
+      timeframe
+    );
     return res.json({
       albums: topAlbums,
       style: user.topAlbumsStyle,
@@ -268,7 +286,16 @@ export const getUserArtists = async (
     if (req.query.timeframe) {
       timeframe = req.query.timeframe as Timeframe;
     }
-    const topArtists = await userService.getTopArtists(user.id, 10, timeframe);
+    // Use the requested limit if it exists, otherwise default limit to 10
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+    // Use the requested page number if it exists, otherwise default to page 1
+    const page = req.query.page ? parseInt(req.query.page as string) : 1;
+    const topArtists = await userService.getTopArtists(
+      user.id,
+      limit,
+      page,
+      timeframe
+    );
     return res.json({
       artists: topArtists,
       style: user.topArtistsStyle,
