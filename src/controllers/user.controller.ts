@@ -175,7 +175,8 @@ export const getUserTracks = async (
     return res.json({
       tracks: topTracks,
       style: user.topTracksStyle,
-      timeframe: timeframe
+      timeframe: timeframe,
+      total: await userService.getTrackStreamCount(user.id, timeframe)
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
@@ -237,7 +238,8 @@ export const getUserAlbums = async (
     return res.json({
       albums: topAlbums,
       style: user.topAlbumsStyle,
-      timeframe: timeframe
+      timeframe: timeframe,
+      total: await userService.getAlbumStreamCount(user.id, timeframe)
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
@@ -299,7 +301,8 @@ export const getUserArtists = async (
     return res.json({
       artists: topArtists,
       style: user.topArtistsStyle,
-      timeframe: timeframe
+      timeframe: timeframe,
+      total: await userService.getArtistStreamCount(user.id, timeframe)
     });
   } catch (error) {
     if (error instanceof RecordNotFoundError) {
