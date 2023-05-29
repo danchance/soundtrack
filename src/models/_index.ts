@@ -1,4 +1,4 @@
-import { devdb } from '../config/db.config.js';
+import config from '../config/db.config.js';
 import { Sequelize } from 'sequelize';
 import albumModel from './album.model.js';
 import trackModel from './track.model.js';
@@ -11,18 +11,18 @@ import userModel from './user.model.js';
  * Setup database connection.
  */
 const sequelize: Sequelize = new Sequelize(
-  devdb.DB,
-  devdb.USER,
-  devdb.PASSWORD,
+  config.DB,
+  config.USER,
+  config.PASSWORD,
   {
-    host: devdb.HOST,
-    port: devdb.PORT,
+    host: config.HOST,
+    port: config.PORT,
     dialect: 'mysql',
     pool: {
-      max: devdb.pool.max,
-      min: devdb.pool.min,
-      acquire: devdb.pool.acquire,
-      idle: devdb.pool.idle
+      max: config.pool.max,
+      min: config.pool.min,
+      acquire: config.pool.acquire,
+      idle: config.pool.idle
     }
     // logging: false
   }

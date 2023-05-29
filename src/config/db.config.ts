@@ -1,7 +1,17 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-export const devdb = {
+type Keyable = {
+  [key: string]: any;
+};
+
+type Config = {
+  development: Keyable;
+  test: Keyable;
+  production: Keyable;
+};
+
+const development = {
   HOST: 'localhost',
   PORT: 3306,
   USER: 'root',
@@ -15,3 +25,24 @@ export const devdb = {
     idle: 10000
   }
 };
+
+/**
+ * Test config.
+ */
+const test = {};
+
+/**
+ * Production config.
+ */
+const production = {};
+
+/**
+ * Export the config based on the environment.
+ */
+const config: Config = {
+  development,
+  test,
+  production
+};
+
+export default config[process.env.NODE_ENV as keyof Config];
