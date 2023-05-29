@@ -7,6 +7,7 @@ import { sequelize } from './models/_index.js';
 import checkUser from './middleware/user.js';
 import userDb from './data_access/user.data.js';
 import BadRequestError from './errors/bad_request.error.js';
+import rateLimit from 'express-rate-limit';
 
 /**
  * Syncronize models with the database
@@ -14,6 +15,18 @@ import BadRequestError from './errors/bad_request.error.js';
 // sequelize.sync({ force: true });
 
 const app: Express = express();
+
+/**
+ * Mount rate limiting middleware.
+ * Requests to the api are limited to 150/minute
+ */
+const limiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 150,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use(limiter);
 
 /**
  * Mount middleware used to serve static files.
