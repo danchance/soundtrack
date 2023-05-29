@@ -8,6 +8,7 @@ import checkUser from './middleware/user.js';
 import userDb from './data_access/user.data.js';
 import BadRequestError from './errors/bad_request.error.js';
 import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 
 /**
  * Syncronize models with the database
@@ -27,6 +28,11 @@ const limiter = rateLimit({
   legacyHeaders: false
 });
 app.use('/api', limiter);
+
+/**
+ * Mount helmet middleware to set HTTP response headers.
+ */
+app.use(helmet());
 
 /**
  * Mount middleware used to serve static files.
