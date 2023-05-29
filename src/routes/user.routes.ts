@@ -12,6 +12,7 @@ import getUserCurrentTrackSchema from '../validation_schemas/user/get_user_curre
 import patchUserSettingsSchema from '../validation_schemas/user/patch_user_settings.schema.js';
 import postSpotifyConnectionSchema from '../validation_schemas/user/post_spotify_connection.schema.js';
 import deleteUserSchema from '../validation_schemas/user/delete_user.schema.js';
+import postUserSchema from '../validation_schemas/user/post_user.schema.js';
 
 const router: Router = Router();
 
@@ -39,7 +40,7 @@ router.post(
   userController.postBannerImage
 );
 
-router.post('/add', userController.postUser);
+router.post('/add', postUserSchema, validateRequest, userController.postUser);
 
 router.post(
   '/spotify',

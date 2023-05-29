@@ -10,6 +10,7 @@ import auth0API from '../data_access/auth0.data.js';
 import { StyleType, Timeframe } from '../models/user.model.js';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs';
+import client from 'https';
 import getTimeframeStartDate from '../utils/timeframe.js';
 
 /**
@@ -497,9 +498,12 @@ const userService = (() => {
         if (key === 'email' || key === 'password' || key === 'username') {
           await auth0API.updateUser(userId, key, value as string);
         }
-        if (key === 'picture' && process.env.NODE_ENV !== 'development') {
-          //TODO: Auth0 do not allow relative urls for profile pictures???
-          await auth0API.updateUser(userId, key, value as string);
+        if (key === 'picture' && process.env.NODE_ENV === 'production') {
+          // Auth0 do not allow relative urls for the profile picture, so only update
+          // profile picture stored in Auth0 database in production.
+          // Append the domain to the start of the path.
+          const url = `${value}`;
+          await auth0API.updateUser(userId, key, url);
         }
         // Update attributes stored in local database. Note: some attributes are
         // stored in both the local and Auth0 database.
@@ -551,7 +555,11 @@ const userService = (() => {
       imageType === 'profile' ? user.picture : user.bannerPicture;
     // Save new image and update user.
     const randomValue = Math.floor(Math.random() * 10000);
-    const pictureName = `${userId.replace('|', '')}${randomValue}.jpg`;
+    const fileExtension = picture.mimetype === 'image/jpeg' ? 'jpg' : 'png';
+    const pictureName = `${userId.replace(
+      '|',
+      ''
+    )}${randomValue}.${fileExtension}`;
     const picturePath = `/images/${imageType}/${pictureName}`;
     fs.writeFile(`./public${picturePath}`, picture.data, (err: any) => {
       if (err) {
@@ -569,8 +577,8 @@ const userService = (() => {
     ) {
       throw new Error('Error updating profile picture');
     }
-    // Remove old image.
-    if (oldImage) {
+    // Remove old image if it is not the default.
+    if (oldImage && oldImage.slice(-11) !== 'default.jpg') {
       fs.unlink(`./public${oldImage}`, () => {});
     }
     return picturePath;
@@ -611,6 +619,46 @@ const userService = (() => {
     }
   };
 
+  /**
+   * Add a user account to the local database. This is performed after a user has
+   * signed up and is added to the Auth0 database.
+   * @param userId Id of the user
+   * @param username Username of the user
+   * @param email Email of the user
+   */
+  const addAccount = async (
+    userId: string,
+    username: string,
+    email: string
+  ) => {
+    // Fetch the picture that Auth0 is using as the initial profile image.
+    // The name of the image is the first 2 characters of the email address.
+    // If fetching the image fails, use a default that can be changes later
+    // by the user.
+    const imageName = email.substring(0, 2);
+    let picturePath = `/images/profile/${userId.replace('|', '')}.png`;
+    client.get(
+      `https://i0.wp.com/cdn.auth0.com/avatars/${imageName}.png?ssl=1`,
+      (res) => {
+        if (res.statusCode === 200) {
+          res
+            .pipe(fs.createWriteStream(`./public${picturePath}`))
+            .on('error', () => {
+              picturePath = `/images/profile/default.png`;
+            });
+        } else {
+          picturePath = `/images/profile/default.png`;
+        }
+      }
+    );
+    await userDb.createUser({
+      id: userId,
+      username: username,
+      picture: picturePath,
+      bannerPicture: '/images/banner/default.jpg'
+    });
+  };
+
   return {
     authenticateSpotifyUser,
     getTrackHistory,
@@ -625,7 +673,8 @@ const userService = (() => {
     updateUserSettings,
     updateUserImage,
     deleteSpotifyConnection,
-    deleteAccount
+    deleteAccount,
+    addAccount
   };
 })();
 

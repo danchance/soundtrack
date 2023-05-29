@@ -7,6 +7,7 @@ import userService from '../services/user.service.js';
 import { UploadedFile } from 'express-fileupload';
 import config from '../config/general.config.js';
 import { Timeframe } from '../models/user.model.js';
+import { UniqueConstraintError } from 'sequelize';
 
 /**
  * Controller for the GET users/[username]/info endpoint.
@@ -548,15 +549,34 @@ export const postBannerImage = async (
 
 /**
  * Controller for the POST users/add endpoint.
+ * Called by Auth0 when a new user is created in the Auth0 database.
+ * postProfilePicture should be called after this if the user is using a non
+ * default profile picture.
  * @param req Express Request object.
  * @param res Express Response object.
  * @param next next middleware function.
  */
-export const postUser = (req: Request, res: Response, next: NextFunction) => {
+export const postUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    console.log('User added');
-    return res.json({});
+    await userService.addAccount(
+      req.body.id,
+      req.body.username,
+      req.body.email
+    );
+    return res.json({ status: 'success' });
   } catch (error) {
+    if (error instanceof UniqueConstraintError) {
+      return res.status(409).json({
+        error: {
+          status: 409,
+          message: error.message
+        }
+      });
+    }
     return next(error);
   }
 };
