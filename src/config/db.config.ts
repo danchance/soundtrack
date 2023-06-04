@@ -35,7 +35,7 @@ const test = {};
  * Production config.
  */
 const production = {
-  HOST: 'localhost',
+  HOST: '127.0.0.1',
   PORT: 3306,
   USER: 'danchance',
   PASSWORD: process.env.DB_PASSWORD,
