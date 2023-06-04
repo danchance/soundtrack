@@ -34,7 +34,20 @@ const test = {};
 /**
  * Production config.
  */
-const production = {};
+const production = {
+  HOST: 'localhost',
+  PORT: 3306,
+  USER: 'danchance',
+  PASSWORD: process.env.DB_PASSWORD,
+  DB: 'soundtrack',
+  dialect: 'mysql',
+  pool: {
+    max: 5,
+    min: 0,
+    acquire: 30000,
+    idle: 10000
+  }
+};
 
 /**
  * Export the config based on the environment.
