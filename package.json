@@ -22,6 +22,7 @@
     "jsonwebtoken": "^9.0.0",
     "jwks-rsa": "^3.0.1",
     "mysql2": "^3.1.2",
+    "node-cron": "^3.0.2",
     "node-fetch": "^3.3.0",
     "sequelize": "^6.29.0",
     "sequelize-slugify": "^1.6.2"
@@ -32,6 +33,7 @@
     "@types/express-fileupload": "^1.4.1",
     "@types/jsonwebtoken": "^9.0.1",
     "@types/node": "^18.14.1",
+    "@types/node-cron": "^3.0.7",
     "concurrently": "^7.6.0",
     "cross-env": "^7.0.3",
     "dotenv": "^16.0.3",

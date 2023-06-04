@@ -662,6 +662,7 @@ const userService = (() => {
   return {
     authenticateSpotifyUser,
     getTrackHistory,
+    updateTrackHistory,
     getTopTracks,
     getTopAlbums,
     getTopArtists,
