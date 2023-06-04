@@ -4,9 +4,4 @@
  */
 import * as dotenv from 'dotenv';
 
-/**
- * Do not load environment variables from .env file in production.
- */
-if (process.env.NODE_ENV !== 'production') {
-  dotenv.config();
-}
+dotenv.config();
