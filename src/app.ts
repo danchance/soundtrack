@@ -15,7 +15,7 @@ import updateStreamHistoryJob from './jobs/user_streaming_history.job.js';
 /**
  * Syncronize models with the database
  */
-// sequelize.sync({ force: true });
+sequelize.sync();
 
 /**
  * Schedule cron jobs. Jobs:
