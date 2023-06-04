@@ -55,7 +55,7 @@ const test = {
  */
 const production = {
   serverPort: 8000,
-  domain: 'https://mysoundtrack.dev',
+  domain: 'https://api.mysoundtrack.dev',
   auth0: {
     audience: 'https://soundtrack/api',
     domain: 'https://soundtrack.uk.auth0.com/',
