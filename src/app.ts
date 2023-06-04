@@ -9,11 +9,22 @@ import userDb from './data_access/user.data.js';
 import BadRequestError from './errors/bad_request.error.js';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import cron from 'node-cron';
+import updateStreamHistoryJob from './jobs/user_streaming_history.job.js';
 
 /**
  * Syncronize models with the database
  */
 // sequelize.sync({ force: true });
+
+/**
+ * Schedule cron jobs. Jobs:
+ *  1) Update user streaming history (every 10 minutes).
+ */
+cron.schedule(
+  updateStreamHistoryJob.CRON_EXPRESSION,
+  updateStreamHistoryJob.task
+);
 
 const app: Express = express();
 
