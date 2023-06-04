@@ -11,4 +11,5 @@ const server = createServer(app);
 server.listen(generalConfig.serverPort);
 server.on('listening', () => {
   console.log(`[server]: Server is running at ${generalConfig.domain}`);
+  console.log(`Mode: ${process.env.NODE_ENV}`);
 });
