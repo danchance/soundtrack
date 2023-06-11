@@ -92,7 +92,11 @@ if (process.env.NODE_ENV === 'development') {
  */
 app.use(
   cors({
-    origin: ['http://127.0.0.1:3000', 'https://soundtrack.uk.auth0.com/'],
+    origin: [
+      'http://127.0.0.1:3000',
+      'https://soundtrack.uk.auth0.com/',
+      'https://mysoundtrack.dev'
+    ],
     credentials: true
   })
 );
