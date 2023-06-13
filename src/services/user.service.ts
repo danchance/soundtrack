@@ -12,6 +12,7 @@ import { UploadedFile } from 'express-fileupload';
 import fs from 'fs';
 import client from 'https';
 import getTimeframeStartDate from '../utils/timeframe.js';
+import config from '../config/general.config.js';
 
 /**
  * Type used to represent a users top tracks, albums or artists.
@@ -502,7 +503,7 @@ const userService = (() => {
           // Auth0 do not allow relative urls for the profile picture, so only update
           // profile picture stored in Auth0 database in production.
           // Append the domain to the start of the path.
-          const url = `${value}`;
+          const url = `${config.domain}${value}`;
           await auth0API.updateUser(userId, key, url);
         }
         // Update attributes stored in local database. Note: some attributes are

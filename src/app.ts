@@ -118,6 +118,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     .json({ error: { status: 404, message: 'Resource Not Found' } });
 });
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+  console.log(error);
   if (error instanceof BadRequestError) {
     return res.status(400).json({
       error: {
