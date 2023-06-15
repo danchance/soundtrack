@@ -155,6 +155,7 @@ const userService = (() => {
     } else {
       res = await spotifyApi.getRecentlyPlayed(accessToken, 20);
     }
+    if (!res.items) return;
     // Add new tracks to database and update the users streaming history.
     const trackHistoryList: Array<IUserTrackHistory> = [];
     const trackList: Array<SpotifyTrack> = [];
@@ -207,7 +208,7 @@ const userService = (() => {
         artists ON albums.artist_id = artists.id
       WHERE user_id = :user_id AND user_track_histories.played_at > :datetime
       GROUP BY tracks.id
-      ORDER BY count DESC
+      ORDER BY count DESC, tracks.id
       LIMIT :limit
       OFFSET :offset;`,
       {
@@ -260,7 +261,7 @@ const userService = (() => {
         artists ON albums.artist_id = artists.id
       WHERE user_id = :user_id AND user_track_histories.played_at > :datetime
       GROUP BY albums.id
-      ORDER BY count DESC
+      ORDER BY count DESC, albums.id
       LIMIT :limit
       OFFSET :offset;`,
       {
@@ -311,7 +312,7 @@ const userService = (() => {
         artists ON albums.artist_id = artists.id
       WHERE user_id = :user_id AND user_track_histories.played_at > :datetime
       GROUP BY artists.id
-      ORDER BY count DESC
+      ORDER BY count DESC, artists.id
       LIMIT :limit
       OFFSET :offset;`,
       {
