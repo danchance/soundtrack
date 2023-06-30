@@ -16,12 +16,7 @@ This is the SoundTrack backend, an API developed using Node, Typescript, and Exp
 
 - **User Streming Data:** SoundTrack enables users to connect their Spotify Account in order to monitor their listening habits. Users can explore their favorite artists, albums, and tracks through various formats displayed on their profile.
 
-![User profile screenshots](/readme/profile.jpg)
-
 - **Artist, Album and Track Data:** All artists, albums, or tracks streamed by a SoundTrack user are available for viewing. For instance, the artist page provides information on their top albums and tracks. Additionally, you can view the top listeners for any artist, track, or album.
-
-![Library page screenshot](/readme/library.jpg)
 
 - **Settings:** Within the settings pages, users have the ability to modify their profile image and banner image. They can also customize profile options, such as the timeframe and data format, which changes the default view of the users profile. Furthermore, users have the option to set their profiles as private, thus preventing others from viewing them.
 
-![Settings pages screenshots](/readme/settings.jpg)
